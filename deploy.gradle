@@ -1,15 +1,17 @@
 apply plugin: 'com.jfrog.bintray'
 apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'org.jetbrains.dokka-android'
-apply from: "keystores.gradle"
 
 version = libVersion
 group = groupId
 
 
+// Bintray
+Properties properties = new Properties()
+properties.load(project.rootProject.file('local.properties').newDataInputStream())
 bintray {
-    user = bintray_user
-    key = bintray_key
+    user = properties.getProperty("bintray.user")
+    key = properties.getProperty("bintray.apikey")
     configurations = ['archives']
     publish = true
     override = false
@@ -59,14 +61,17 @@ install {
 
 //just copy paste the lines below
 if (project.hasProperty("kotlin")) {
+    println("project.hasProperty(\"kotlin\")")
     //Kotlin libraries
     task sourcesJar(type: Jar) {
         classifier = 'sources'
-        from android.sourceSets.main.java.srcDirs
+        from sourceSets.main.java.srcDirs
     }
 
-    task javadoc(type: Javadoc, dependsOn: dokka) {}
+//    task javadoc(type: Javadoc, dependsOn: dokka) {}
 } else if (project.hasProperty("android")) {
+    println("project.hasProperty(\"android\")")
+
     task sourcesJar(type: Jar) {
         classifier = 'sources'
         from android.sourceSets.main.java.srcDirs
@@ -77,6 +82,7 @@ if (project.hasProperty("kotlin")) {
         classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
     }
 } else {
+    println("project.hasProperty(\"Java\")")
     // Java libraries
     task sourcesJar(type: Jar, dependsOn: classes) {
         classifier = 'sources'

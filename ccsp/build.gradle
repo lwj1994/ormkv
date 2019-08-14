@@ -1,11 +1,9 @@
 apply plugin: 'java-library'
 apply plugin: 'kotlin'
-apply plugin: 'kotlin-kapt'
-
 ext {
     libVersion = "0.0.1"
     groupId = "com.lwjlol.ccsp"
-    artifactId = "compiler"
+    artifactId = "ccsp"
     pkg_name = "ccsp"
     libraryDescription = 'ccsp'
     siteUrl = 'https://github.com/lwj1994/ccsp.git'
@@ -19,14 +17,11 @@ ext {
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation"org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    implementation 'com.squareup:kotlinpoet:1.3.0'
-    implementation project(path: ':ccsp')
-
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 }
 
 sourceCompatibility = "8"
 targetCompatibility = "8"
+
 
 apply from: '../deploy.gradle'
