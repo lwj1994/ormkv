@@ -15,7 +15,9 @@ data class UserInfos(
     @ColumnInfo(defValue = "12312312")
     val id: Long,
     @ColumnInfo(defValue = "false")
-    val isMan: Boolean
+    val isMan: Boolean,
+    @ColumnInfo(defValue = "2.2F")
+    val temperature: Float
 ) {
 
 

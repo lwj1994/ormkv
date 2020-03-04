@@ -2,19 +2,19 @@
  [ ![Download](https://api.bintray.com/packages/wenchieh/maven/ccsp/images/download.svg) ](https://bintray.com/wenchieh/maven/bottombar/_latestVersion)
  ![](https://img.shields.io/badge/build-passing-green.svg)
  ![](https://img.shields.io/badge/license-MIT-orange.svg)
- 
+
  ```gradle
-implementation 'com.lwjlol.ccsp:ccsp:0.0.1'
-kapt 'com.lwjlol.ccsp:compiler:0.0.1'
-```
- 
- ccsp 是一个结合内存和 sp 存储的工具. 将字段信息暂时存入内存中, 读取直接从内存中读取, 同时存入 sp.
- 
+implementation 'com.lwjlol.ccsp:ccsp:0.0.2'
+kapt 'com.lwjlol.ccsp:compiler:0.0.2'
+ ```
+
+ ccsp 是一个结合内存和 sp 存储的工具. 存储时将字段信息暂时存入内存中,同时存入 sp. 读取时优先从内存中取出。避免反复的调用 sp 引起不必要的 IO。
+
  ## 使用方法
  你可以直接参考 sample 使用.  
- 
+
  ccsp 将 sp 字段信息映射到一个实体 Entity 类.
- 
+
  在一个实体类添加如下注解:
 ```
 @Entity(name = "UserInfoSP", getSpCode = "SPStores.sp")
@@ -38,17 +38,19 @@ data class UserInfos(
 @Entity(name = "UserInfoSP", getSpCode = "SPStores.sp")
 ```
 `name`: 指定生成文件的名字  
- 
 
 `getSpCode`: 生成一个 sp 实例的代码.  
 
-例: 在一个地方定义一个 `SPStores` 来存储所有的 sp 仓库.
+__注意:  `getSpCode` 所在的 class 必须和 @Entity 注解的实体类 class 在同一个包名下__
+
+例: 在一个地方定义一个 `SPStores` 来存储所有的 sp 仓库  
+
 ```
 object SPStores {
     val sp = App.context.getSharedPreferences("ccsp", Context.MODE_PRIVATE)
 }
 ```
-那么 `getSpCode = SPStores.sp`.  
+那么 `getSpCode = SPStores.sp`. 
 
 这样设计可能有些粗糙. 但是 sp 的生成需要引入 context. 所以暂时这样妥协.
 
@@ -146,3 +148,4 @@ UserInfos_CCSP.age = 44
 * Int
 * Long
 * Boolean
+* Float

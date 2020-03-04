@@ -17,6 +17,7 @@ class MainActivity : AppCompatActivity() {
             UserInfos_CCSP.age = ageEditText.text.toString().toDouble().toInt()
             UserInfos_CCSP.id = idEditText.text.toString().toDouble().toLong()
             UserInfos_CCSP.isMan = manCheckBox.isChecked
+            UserInfos_CCSP.temperature = 36.3F
             updateText()
         }
 
@@ -30,6 +31,7 @@ class MainActivity : AppCompatActivity() {
         debugTextView.text = "name = ${UserInfos_CCSP.name}" +
                 "\n age = ${UserInfos_CCSP.age}" +
                 "\n id = ${UserInfos_CCSP.id}" +
-                "\n isMan = ${UserInfos_CCSP.isMan}"
+                "\n isMan = ${UserInfos_CCSP.isMan}"+
+                "\n temperature = ${UserInfos_CCSP.temperature}"
     }
 }

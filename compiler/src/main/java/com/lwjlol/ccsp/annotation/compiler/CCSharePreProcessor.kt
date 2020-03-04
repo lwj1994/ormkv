@@ -94,19 +94,21 @@ class CCSharePreProcessor : AbstractProcessor() {
                 val spColumnInfo = member.getAnnotation(ColumnInfo::class.java)
                 val s = typeName.toString()
                 val defValue = when {
-                    s.contains(
-                        "String"
-                    ) -> if (spColumnInfo.defValue.isNotEmpty()) spColumnInfo.defValue else ""
-                    s.contains(
-                        "Boolean"
-                    ) -> "${if (spColumnInfo.defValue.isNotEmpty()) spColumnInfo.defValue.toBoolean() else false}"
-                    s.contains(
-                        "Int"
-                    ) -> "${if (spColumnInfo.defValue.isNotEmpty()) spColumnInfo.defValue.toInt() else 0}"
-                    s.contains(
-                        "Long"
-                    ) -> "${if (spColumnInfo.defValue.isNotEmpty()) spColumnInfo.defValue.toLong() else 0}"
-                    else -> "get"
+                    s.contains("String") -> if (spColumnInfo.defValue.isNotEmpty()) spColumnInfo.defValue else ""
+                    s.contains("Boolean") -> "${if (spColumnInfo.defValue.isNotEmpty()) spColumnInfo.defValue.toBoolean() else false}"
+                    s.contains("Int") -> "${if (spColumnInfo.defValue.isNotEmpty()) spColumnInfo.defValue.toInt() else 0}"
+                    s.contains("Long") -> "${if (spColumnInfo.defValue.isNotEmpty()) spColumnInfo.defValue.toLong() else 0}"
+                    s.contains("Float") -> {
+                        val res =
+                            (if (spColumnInfo.defValue.isNotEmpty()) spColumnInfo.defValue.toFloat() else 0F).toString()
+                        if (!res.contains("F")) {
+                            "${res}F"
+                        } else {
+                            res
+                        }
+                    }
+
+                    else -> "unsupport"
                 }
 
                 val getName = when {
@@ -114,7 +116,9 @@ class CCSharePreProcessor : AbstractProcessor() {
                     s.contains("Boolean") -> "getBoolean(\"$propertyName\", $defValue)"
                     s.contains("Int") -> "getInt(\"$propertyName\", $defValue)"
                     s.contains("Long") -> "getLong(\"$propertyName\", $defValue)"
-                    else -> "get"
+                    s.contains("Float") -> "getFloat(\"$propertyName\", $defValue)"
+
+                    else -> "unsupport"
                 }
 
                 val setName = when {
@@ -122,7 +126,8 @@ class CCSharePreProcessor : AbstractProcessor() {
                     s.contains("Boolean") -> "putBoolean(\"$propertyName\", value)"
                     s.contains("Int") -> "putInt(\"$propertyName\", value)"
                     s.contains("Long") -> "putLong(\"$propertyName\", value)"
-                    else -> "get"
+                    s.contains("Float") -> "putFloat(\"$propertyName\", value)"
+                    else -> "unsupport"
                 }
 
 
