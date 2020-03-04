@@ -1,7 +1,7 @@
 apply plugin: 'java-library'
 apply plugin: 'kotlin'
 ext {
-    libVersion = "0.0.1"
+    libVersion = "0.0.2"
     groupId = "com.lwjlol.ccsp"
     artifactId = "ccsp"
     pkg_name = "ccsp"
