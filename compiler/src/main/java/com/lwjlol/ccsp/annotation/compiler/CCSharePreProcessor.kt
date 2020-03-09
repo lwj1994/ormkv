@@ -26,7 +26,8 @@ class CCSharePreProcessor : AbstractProcessor() {
         messager = processingEnv?.messager
     }
 
-    fun print(text: String) {
+    private fun print(text: String) {
+        if (!LOG) return
         messager?.printMessage(Diagnostic.Kind.NOTE, text)
         println("CCSharePreProcessor--- $text")
     }
@@ -67,9 +68,9 @@ class CCSharePreProcessor : AbstractProcessor() {
         val typeSpec = TypeSpec.objectBuilder(fileName)
             .addProperty(
                 PropertySpec.builder(
-                    "sp",
-                    Class.forName("android.content.SharedPreferences"), KModifier.PRIVATE
-                ).initializer(entity.getSpCode)
+                        "sp",
+                        Class.forName("android.content.SharedPreferences"), KModifier.PRIVATE
+                    ).initializer(entity.getSpCode)
                     .build()
             )
 
@@ -186,5 +187,6 @@ class CCSharePreProcessor : AbstractProcessor() {
         const val KAPT_KOTLIN_GENERATED_OPTION_NAME = "kapt.kotlin.generated"
         private const val TAG = "CCSharePreProcessor"
         private const val PRE_FIX = "CCSP"
+        private const val LOG = false
     }
 }
