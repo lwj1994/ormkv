@@ -68,9 +68,9 @@ class CCSharePreProcessor : AbstractProcessor() {
         val typeSpec = TypeSpec.objectBuilder(fileName)
             .addProperty(
                 PropertySpec.builder(
-                        "sp",
-                        Class.forName("android.content.SharedPreferences"), KModifier.PRIVATE
-                    ).initializer(entity.getSpCode)
+                    "sp",
+                    Class.forName("android.content.SharedPreferences"), KModifier.PRIVATE
+                ).initializer(entity.getSpCode)
                     .build()
             )
 
@@ -150,6 +150,7 @@ class CCSharePreProcessor : AbstractProcessor() {
                         .setter(
                             FunSpec.setterBuilder().addParameter("value", typeName).addCode(
                                 """
+                            |if ($valueName == value) return
                             |$valueName = value
                             |sp.edit().$setName.apply()
                             |""".trimMargin()

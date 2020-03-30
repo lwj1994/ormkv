@@ -3,7 +3,7 @@ apply plugin: 'kotlin'
 apply plugin: 'kotlin-kapt'
 
 ext {
-    libVersion = "0.0.3"
+    libVersion = "0.0.4"
     groupId = "com.lwjlol.ccsp"
     artifactId = "compiler"
     pkg_name = "ccsp"
