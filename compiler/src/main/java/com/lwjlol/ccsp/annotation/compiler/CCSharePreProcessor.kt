@@ -27,7 +27,7 @@ class CCSharePreProcessor : AbstractProcessor() {
     }
 
     private fun print(text: String) {
-        if (!LOG) return
+        if (!DEBUG) return
         messager?.printMessage(Diagnostic.Kind.NOTE, text)
         println("CCSharePreProcessor--- $text")
     }
@@ -75,6 +75,8 @@ class CCSharePreProcessor : AbstractProcessor() {
             )
 
         val clearCode = StringBuilder()
+        val setDataCode = StringBuilder()
+
         allMembers.forEach { member ->
             if (member.kind.isField && !member.modifiers.contains(Modifier.STATIC)) {
                 val name = member.asType().asTypeName()
@@ -164,7 +166,9 @@ class CCSharePreProcessor : AbstractProcessor() {
                 } else {
                     clearCode.append("$propertyName = $defValue \n")
                 }
+                setDataCode.append("$propertyName = data.$propertyName \n")
             }
+
         }
 
 
@@ -177,6 +181,21 @@ class CCSharePreProcessor : AbstractProcessor() {
                 )
                 .build()
         )
+
+        if (DEBUG){
+//            typeSpec.addFunction(
+//                FunSpec.builder("setData").addParameter("data", Any::class.java)
+//                    .addCode(
+//                        """
+//              |$setDataCode
+//            """.trimMargin(
+//
+//                        )
+//                    )
+//                    .build()
+//            )
+        }
+
         val file = FileSpec.builder(packageName, fileName).addType(typeSpec.build()).build()
 
 
@@ -188,6 +207,6 @@ class CCSharePreProcessor : AbstractProcessor() {
         const val KAPT_KOTLIN_GENERATED_OPTION_NAME = "kapt.kotlin.generated"
         private const val TAG = "CCSharePreProcessor"
         private const val PRE_FIX = "CCSP"
-        private const val LOG = false
+        private const val DEBUG = false
     }
 }
