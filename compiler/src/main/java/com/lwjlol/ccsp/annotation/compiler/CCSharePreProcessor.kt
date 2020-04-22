@@ -194,6 +194,6 @@ class CCSharePreProcessor : AbstractProcessor() {
         const val KAPT_KOTLIN_GENERATED_OPTION_NAME = "kapt.kotlin.generated"
         private const val TAG = "CCSharePreProcessor"
         private const val PRE_FIX = "CCSP"
-        private const val LOG = true
+        private const val LOG = false
     }
 }
