@@ -2,6 +2,7 @@ package com.lwjlol.ccsp.annotation.compiler
 
 import com.lwjlol.ccsp.annotation.ColumnInfo
 import com.lwjlol.ccsp.annotation.Entity
+import com.lwjlol.ccsp.annotation.Skip
 import com.squareup.kotlinpoet.*
 import java.io.File
 import javax.annotation.processing.*
@@ -77,8 +78,10 @@ class CCSharePreProcessor : AbstractProcessor() {
         val clearCode = StringBuilder()
         allMembers.forEach { member ->
             if (member.kind.isField && !member.modifiers.contains(Modifier.STATIC)) {
-                val name = member.asType().asTypeName()
+                val spSkip = member.getAnnotation(Skip::class.java)
+                if (spSkip != null) return@forEach
 
+                val name = member.asType().asTypeName()
                 val valueName = "_${member.simpleName}"
                 val propertyName = member.simpleName.toString()
                 val typeName =
@@ -93,12 +96,15 @@ class CCSharePreProcessor : AbstractProcessor() {
 
                 )
                 val spColumnInfo = member.getAnnotation(ColumnInfo::class.java)
+                val defInitValue = spColumnInfo?.defValue ?: ""
+
+
                 val s = typeName.toString()
                 val defValue = when {
-                    s.contains("String") -> if (spColumnInfo.defValue.isNotEmpty()) spColumnInfo.defValue else ""
-                    s.contains("Boolean") -> "${if (spColumnInfo.defValue.isNotEmpty()) spColumnInfo.defValue.toBoolean() else false}"
-                    s.contains("Int") -> "${if (spColumnInfo.defValue.isNotEmpty()) spColumnInfo.defValue.toInt() else 0}"
-                    s.contains("Long") -> "${if (spColumnInfo.defValue.isNotEmpty()) spColumnInfo.defValue.toLong() else 0}"
+                    s.contains("String") -> if (defInitValue.isNotEmpty()) defInitValue else ""
+                    s.contains("Boolean") -> "${if (defInitValue.isNotEmpty()) defInitValue.toBoolean() else false}"
+                    s.contains("Int") -> "${if (defInitValue.isNotEmpty()) defInitValue.toInt() else 0}"
+                    s.contains("Long") -> "${if (defInitValue.isNotEmpty()) defInitValue.toLong() else 0}"
                     s.contains("Float") -> {
                         val res =
                             (if (spColumnInfo.defValue.isNotEmpty()) spColumnInfo.defValue.toFloat() else 0F).toString()
@@ -188,6 +194,6 @@ class CCSharePreProcessor : AbstractProcessor() {
         const val KAPT_KOTLIN_GENERATED_OPTION_NAME = "kapt.kotlin.generated"
         private const val TAG = "CCSharePreProcessor"
         private const val PRE_FIX = "CCSP"
-        private const val LOG = false
+        private const val LOG = true
     }
 }
