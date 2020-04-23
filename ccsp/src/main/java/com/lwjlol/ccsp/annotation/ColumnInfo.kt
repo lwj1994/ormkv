@@ -6,7 +6,7 @@ package com.lwjlol.ccsp.annotation
  */
 @Target(AnnotationTarget.FIELD)
 @Retention(AnnotationRetention.SOURCE)
-annotation class ColumnInfo(val defValue: String = "") {
+annotation class ColumnInfo(val defValue: String = "", val clear: Boolean = true) {
 
 
     companion object {

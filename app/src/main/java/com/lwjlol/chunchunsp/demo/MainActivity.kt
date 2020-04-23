@@ -13,9 +13,15 @@ class MainActivity : AppCompatActivity() {
         updateText()
 
         updateButton.setOnClickListener {
-            UserInfos_CCSP.name = nameEditText.text.toString()
-            UserInfos_CCSP.age = ageEditText.text.toString().toDouble().toInt()
-            UserInfos_CCSP.id = idEditText.text.toString().toDouble().toLong()
+            if (nameEditText.text.isNotEmpty()) {
+                UserInfos_CCSP.name = nameEditText.text.toString()
+            }
+            if (ageEditText.text.isNotEmpty()) {
+                UserInfos_CCSP.age = ageEditText.text.toString().toDouble().toInt()
+            }
+            if (idEditText.text.isNotEmpty()) {
+                UserInfos_CCSP.id = idEditText.text.toString().toDouble().toLong()
+            }
             UserInfos_CCSP.isMan = manCheckBox.isChecked
             UserInfos_CCSP.temperature = 36.3F
             updateText()
@@ -35,7 +41,7 @@ class MainActivity : AppCompatActivity() {
                 "\n temperature = ${UserInfos_CCSP.temperature}"
     }
 
-    companion object{
+    companion object {
         val sp = App.context.getSharedPreferences("ccsp", Context.MODE_PRIVATE)
         val encrypt by lazy {
             MyCcspCrypt()

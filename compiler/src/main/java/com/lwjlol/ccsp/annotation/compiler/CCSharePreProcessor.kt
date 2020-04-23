@@ -123,6 +123,9 @@ class CCSharePreProcessor : AbstractProcessor() {
             if (member.kind.isField && !member.modifiers.contains(Modifier.STATIC)) {
                 val spSkip = member.getAnnotation(Skip::class.java)
                 if (spSkip != null) return@forEach
+                val spColumnInfo = member.getAnnotation(ColumnInfo::class.java)
+                val defInitValue = spColumnInfo?.defValue ?: ""
+                val clear = spColumnInfo?.clear ?: true
 
                 val name = member.asType().asTypeName()
                 val valueName = "_${member.simpleName}"
@@ -139,8 +142,6 @@ class CCSharePreProcessor : AbstractProcessor() {
                         .build()
 
                 )
-                val spColumnInfo = member.getAnnotation(ColumnInfo::class.java)
-                val defInitValue = spColumnInfo?.defValue ?: ""
 
 
                 val paramType = typeName.toString()
@@ -228,11 +229,12 @@ class CCSharePreProcessor : AbstractProcessor() {
                         )
                         .build()
                 )
-
-                if (typeName.toString().contains("String")) {
-                    clearCode.append("$propertyName = \"$defValue\" \n")
-                } else {
-                    clearCode.append("$propertyName = $defValue \n")
+                if (clear){
+                    if (typeName.toString().contains("String")) {
+                        clearCode.append("$propertyName = \"$defValue\" \n")
+                    } else {
+                        clearCode.append("$propertyName = $defValue \n")
+                    }
                 }
             }
         }

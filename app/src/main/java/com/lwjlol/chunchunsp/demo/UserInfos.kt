@@ -20,11 +20,11 @@ data class UserInfos(
     val name: String,
     @ColumnInfo(defValue = "12")
     val age: Int,
-    @ColumnInfo(defValue = "12312312")
+    @ColumnInfo(defValue = "12312312",clear = false)
     val id: Long,
     @ColumnInfo(defValue = "false")
     val isMan: Boolean,
-    @ColumnInfo(defValue = "0F")
+    @ColumnInfo(defValue = "0F",clear = false)
     private val temperature: Float
 
 ) {
