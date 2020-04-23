@@ -11,7 +11,6 @@ import com.lwjlol.ccsp.annotation.Skip
 @Entity(getSpCode = "com.lwjlol.chunchunsp.demo.MainActivity.sp")
 @Encrypt(
     getEncryptCode = "com.lwjlol.chunchunsp.demo.MainActivity.encrypt",
-    encryptClass = "com.lwjlol.chunchunsp.demo.MyCcspCrypt",
     secret = "123wdskdhasdguyt1yu22eqwd"
 )
 data class UserInfos(

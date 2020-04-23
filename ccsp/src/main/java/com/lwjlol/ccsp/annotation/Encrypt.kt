@@ -8,7 +8,7 @@ package com.lwjlol.ccsp.annotation
  */
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.SOURCE)
-annotation class Encrypt(val secret: String = "you must set yourself secret",val encryptClass:String = "you must set yourself encryptClass",val getEncryptCode:String = "you must set yourself getEncryptCode") {
+annotation class Encrypt(val secret: String = "you must set yourself secret",val getEncryptCode:String = "you must set yourself getEncryptCode") {
 
     companion object {
         private const val TAG = "Encrypt"

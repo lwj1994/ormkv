@@ -35,8 +35,12 @@ class CCSharePreProcessor : AbstractProcessor() {
         println("CCSharePreProcessor--- $text")
     }
 
-    private fun encodeCode(value: String, secret: String) =
-        """${ENCRYPTUTIL}.encode("$value","$secret")"""
+    private fun encodeCode(value: String, secret: String, isValueString: Boolean = true) =
+        if (isValueString) {
+            """${ENCRYPTUTIL}.encode("$value","$secret")"""
+        } else {
+            """${ENCRYPTUTIL}.encode($value,"$secret")"""
+        }
 
 
     /**
@@ -49,17 +53,16 @@ class CCSharePreProcessor : AbstractProcessor() {
             """${ENCRYPTUTIL}.decode($value,"$secret")"""
         }
 
-    private fun setValueCode(value: String, encrypt: Boolean = false, secret: String = "") =
-        if (encrypt) encodeCode(value, secret) else value
+    private fun setValueCode(value: String, encrypt: Encrypt?, isValueString: Boolean = true) =
+        if (encrypt != null) encodeCode(value, encrypt.secret, isValueString) else value
 
 
     private fun getValueCode(
         value: String,
-        encrypt: Boolean = false,
-        secret: String = "",
+        encrypt: Encrypt?,
         isValueString: Boolean = true
     ) =
-        if (encrypt) decodeCode(value, secret) else value
+        if (encrypt != null) decodeCode(value, encrypt.secret, isValueString) else value
 
 
     override fun process(
@@ -101,19 +104,18 @@ class CCSharePreProcessor : AbstractProcessor() {
             typeSpec.addProperty(
                 PropertySpec.builder(
                     ENCRYPTUTIL,
-                    Class.forName(CcspEncrypt::class.qualifiedName),
+                    Class.forName(CcspEncrypt::class.java.canonicalName),
                     KModifier.PRIVATE
                 ).initializer(encrypt.getEncryptCode).build()
             )
         }
         typeSpec.addProperty(
-                PropertySpec.builder(
-                    SP,
-                    Class.forName("android.content.SharedPreferences"),
-                    KModifier.PRIVATE
-                ).initializer(entity.getSpCode).build()
-            )
-
+            PropertySpec.builder(
+                SP,
+                Class.forName("android.content.SharedPreferences"),
+                KModifier.PRIVATE
+            ).initializer(entity.getSpCode).build()
+        )
 
 
         val clearCode = StringBuilder()
@@ -125,6 +127,7 @@ class CCSharePreProcessor : AbstractProcessor() {
                 val name = member.asType().asTypeName()
                 val valueName = "_${member.simpleName}"
                 val propertyName = member.simpleName.toString()
+                print("propertyName = $propertyName")
                 val typeName =
                     if (name.toString().contains("String")) ClassName("kotlin", "String") else name
 
@@ -190,14 +193,13 @@ class CCSharePreProcessor : AbstractProcessor() {
                                     if (paramType.contains("String")) {
                                         """
                                     |if ($valueName == null) {
-                                    |   val $SP_ORIGIN_VALUE = $SP.$getName
+                                    |   val $SP_ORIGIN_VALUE = $SP.$getName ?:""
                                     |   if($SP_ORIGIN_VALUE == "$defValue"){
                                     |     $valueName = $SP_ORIGIN_VALUE     
                                     |   }else{
                                     |     $valueName = ${getValueCode(
                                             SP_ORIGIN_VALUE,
-                                            encrypt != null,
-                                            encrypt?.secret ?: "",
+                                            encrypt,
                                             false
                                         )}
                                     |   } 
@@ -256,7 +258,7 @@ class CCSharePreProcessor : AbstractProcessor() {
         const val KAPT_KOTLIN_GENERATED_OPTION_NAME = "kapt.kotlin.generated"
         private const val TAG = "CCSharePreProcessor"
         private const val PRE_FIX = "CCSP"
-        private const val LOG = false
+        private const val LOG = true
         private const val SP = "sp"
         private const val ENCRYPTUTIL = "encryptUtil"
         private const val SP_ORIGIN_VALUE = "spOriginValue"
