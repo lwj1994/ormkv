@@ -34,6 +34,7 @@ data class UserInfos(
 )
 ```
 ## 注解的含义
+
 ### @Entity
 
 定义一个你要存储的实体类. ccsp 会解析这个实体类生成一个 `UserInfos_CCSP` 类. 你可以通过 `name` 指定生成文件的名字.
@@ -71,7 +72,7 @@ object SPStores {
 
 编译后 ccsp  会生成一个如下文件, 你就可以直接使用这个类来存储 sp 字段信息.
 
-```
+
 
 ### @Encrypt
 定义值的字符串加密信息，只会加密 value，不会加密 key，因为考虑本身代码会混淆，再加密也没必要。
@@ -83,7 +84,7 @@ object SPStores {
 
 ----
 
-
+```
 object UserInfos_CCSP {
   private val sp: SharedPreferences = SPStores.sp
 
