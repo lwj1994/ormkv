@@ -1,11 +1,11 @@
 package com.lwjlol.chunchunsp.demo
 
+import android.content.Context
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -31,7 +31,14 @@ class MainActivity : AppCompatActivity() {
         debugTextView.text = "name = ${UserInfos_CCSP.name}" +
                 "\n age = ${UserInfos_CCSP.age}" +
                 "\n id = ${UserInfos_CCSP.id}" +
-                "\n isMan = ${UserInfos_CCSP.isMan}"+
+                "\n isMan = ${UserInfos_CCSP.isMan}" +
                 "\n temperature = ${UserInfos_CCSP.temperature}"
+    }
+
+    companion object{
+        val sp = App.context.getSharedPreferences("ccsp", Context.MODE_PRIVATE)
+        val encrypt by lazy {
+            MyCcspCrypt()
+        }
     }
 }

@@ -1,6 +1,8 @@
 package com.lwjlol.ccsp.annotation.compiler
 
+import com.lwjlol.ccsp.CcspEncrypt
 import com.lwjlol.ccsp.annotation.ColumnInfo
+import com.lwjlol.ccsp.annotation.Encrypt
 import com.lwjlol.ccsp.annotation.Entity
 import com.lwjlol.ccsp.annotation.Skip
 import com.squareup.kotlinpoet.*
@@ -18,7 +20,7 @@ import javax.tools.Diagnostic
 
 //@AutoService(value = [Process::class])
 @SupportedSourceVersion(value = SourceVersion.RELEASE_8)
-@SupportedAnnotationTypes(value = ["com.lwjlol.ccsp.annotation.Entity", "com.lwjlol.ccsp.annotation.ColumnInfo"])
+@SupportedAnnotationTypes(value = ["com.lwjlol.ccsp.annotation.Entity", "com.lwjlol.ccsp.annotation.ColumnInfo", "com.lwjlol.ccsp.annotation.Skip", "com.lwjlol.ccsp.annotation.Encrypt"])
 class CCSharePreProcessor : AbstractProcessor() {
     private var messager: Messager? = null
 
@@ -32,6 +34,33 @@ class CCSharePreProcessor : AbstractProcessor() {
         messager?.printMessage(Diagnostic.Kind.NOTE, text)
         println("CCSharePreProcessor--- $text")
     }
+
+    private fun encodeCode(value: String, secret: String) =
+        """${ENCRYPTUTIL}.encode("$value","$secret")"""
+
+
+    /**
+     * @param isValueString value 是否是一个字符串， false：变量
+     */
+    private fun decodeCode(value: String, secret: String, isValueString: Boolean = true) =
+        if (isValueString) {
+            """${ENCRYPTUTIL}.decode("$value","$secret")"""
+        } else {
+            """${ENCRYPTUTIL}.decode($value,"$secret")"""
+        }
+
+    private fun setValueCode(value: String, encrypt: Boolean = false, secret: String = "") =
+        if (encrypt) encodeCode(value, secret) else value
+
+
+    private fun getValueCode(
+        value: String,
+        encrypt: Boolean = false,
+        secret: String = "",
+        isValueString: Boolean = true
+    ) =
+        if (encrypt) decodeCode(value, secret) else value
+
 
     override fun process(
         annotations: MutableSet<out TypeElement>,
@@ -47,12 +76,13 @@ class CCSharePreProcessor : AbstractProcessor() {
             .forEach { element ->
                 if (element.kind.isClass) {
                     val entity = element.getAnnotation(Entity::class.java)
+                    val encrypt = element.getAnnotation(Encrypt::class.java)
                     val allMembers = element.enclosedElements
 
                     val className = element.simpleName.toString()
                     val packageName = elementUtils.getPackageOf(element).toString()
 
-                    generateClass(className, packageName, allMembers, entity)
+                    generateClass(className, packageName, allMembers, entity, encrypt)
                 }
             }
         return true
@@ -62,18 +92,29 @@ class CCSharePreProcessor : AbstractProcessor() {
         className: String,
         packageName: String,
         allMembers: List<Element>,
-        entity: Entity
+        entity: Entity,
+        encrypt: Encrypt?
     ) {
-
         val fileName = if (entity.name.isNotEmpty()) entity.name else "${className}_${PRE_FIX}"
         val typeSpec = TypeSpec.objectBuilder(fileName)
-            .addProperty(
+        if (encrypt != null) {
+            typeSpec.addProperty(
                 PropertySpec.builder(
-                    "sp",
-                    Class.forName("android.content.SharedPreferences"), KModifier.PRIVATE
-                ).initializer(entity.getSpCode)
-                    .build()
+                    ENCRYPTUTIL,
+                    Class.forName(CcspEncrypt::class.qualifiedName),
+                    KModifier.PRIVATE
+                ).initializer(encrypt.getEncryptCode).build()
             )
+        }
+        typeSpec.addProperty(
+                PropertySpec.builder(
+                    SP,
+                    Class.forName("android.content.SharedPreferences"),
+                    KModifier.PRIVATE
+                ).initializer(entity.getSpCode).build()
+            )
+
+
 
         val clearCode = StringBuilder()
         allMembers.forEach { member ->
@@ -99,13 +140,13 @@ class CCSharePreProcessor : AbstractProcessor() {
                 val defInitValue = spColumnInfo?.defValue ?: ""
 
 
-                val s = typeName.toString()
+                val paramType = typeName.toString()
                 val defValue = when {
-                    s.contains("String") -> if (defInitValue.isNotEmpty()) defInitValue else ""
-                    s.contains("Boolean") -> "${if (defInitValue.isNotEmpty()) defInitValue.toBoolean() else false}"
-                    s.contains("Int") -> "${if (defInitValue.isNotEmpty()) defInitValue.toInt() else 0}"
-                    s.contains("Long") -> "${if (defInitValue.isNotEmpty()) defInitValue.toLong() else 0}"
-                    s.contains("Float") -> {
+                    paramType.contains("String") -> if (defInitValue.isNotEmpty()) defInitValue else ""
+                    paramType.contains("Boolean") -> "${if (defInitValue.isNotEmpty()) defInitValue.toBoolean() else false}"
+                    paramType.contains("Int") -> "${if (defInitValue.isNotEmpty()) defInitValue.toInt() else 0}"
+                    paramType.contains("Long") -> "${if (defInitValue.isNotEmpty()) defInitValue.toLong() else 0}"
+                    paramType.contains("Float") -> {
                         val res =
                             (if (spColumnInfo.defValue.isNotEmpty()) spColumnInfo.defValue.toFloat() else 0F).toString()
                         if (!res.contains("F")) {
@@ -119,21 +160,23 @@ class CCSharePreProcessor : AbstractProcessor() {
                 }
 
                 val getName = when {
-                    s.contains("String") -> "getString(\"$propertyName\", \"$defValue\")"
-                    s.contains("Boolean") -> "getBoolean(\"$propertyName\", $defValue)"
-                    s.contains("Int") -> "getInt(\"$propertyName\", $defValue)"
-                    s.contains("Long") -> "getLong(\"$propertyName\", $defValue)"
-                    s.contains("Float") -> "getFloat(\"$propertyName\", $defValue)"
+                    paramType.contains("String") -> """getString("$propertyName", "$defValue")"""
+                    paramType.contains("Boolean") -> "getBoolean(\"$propertyName\", $defValue)"
+                    paramType.contains("Int") -> "getInt(\"$propertyName\", $defValue)"
+                    paramType.contains("Long") -> "getLong(\"$propertyName\", $defValue)"
+                    paramType.contains("Float") -> "getFloat(\"$propertyName\", $defValue)"
 
                     else -> "unsupport"
                 }
 
+                val valueStringCode =
+                    if (encrypt != null) """${ENCRYPTUTIL}.encode(value,"${encrypt.secret}")""" else "value"
                 val setName = when {
-                    s.contains("String") -> "putString(\"$propertyName\", value)"
-                    s.contains("Boolean") -> "putBoolean(\"$propertyName\", value)"
-                    s.contains("Int") -> "putInt(\"$propertyName\", value)"
-                    s.contains("Long") -> "putLong(\"$propertyName\", value)"
-                    s.contains("Float") -> "putFloat(\"$propertyName\", value)"
+                    paramType.contains("String") -> "putString(\"$propertyName\", $valueStringCode)"
+                    paramType.contains("Boolean") -> "putBoolean(\"$propertyName\", value)"
+                    paramType.contains("Int") -> "putInt(\"$propertyName\", value)"
+                    paramType.contains("Long") -> "putLong(\"$propertyName\", value)"
+                    paramType.contains("Float") -> "putFloat(\"$propertyName\", value)"
                     else -> "unsupport"
                 }
 
@@ -144,12 +187,31 @@ class CCSharePreProcessor : AbstractProcessor() {
                         .getter(
                             FunSpec.getterBuilder()
                                 .addCode(
-                                    """
+                                    if (paramType.contains("String")) {
+                                        """
                                     |if ($valueName == null) {
-                                    |   $valueName = sp.$getName
+                                    |   val $SP_ORIGIN_VALUE = $SP.$getName
+                                    |   if($SP_ORIGIN_VALUE == "$defValue"){
+                                    |     $valueName = $SP_ORIGIN_VALUE     
+                                    |   }else{
+                                    |     $valueName = ${getValueCode(
+                                            SP_ORIGIN_VALUE,
+                                            encrypt != null,
+                                            encrypt?.secret ?: "",
+                                            false
+                                        )}
+                                    |   } 
                                     |}
                                     |return $valueName!!
                                     |""".trimMargin()
+                                    } else {
+                                        """
+                                    |if ($valueName == null) {
+                                    |   $valueName = $SP.$getName
+                                    |}
+                                    |return $valueName!!
+                                    |""".trimMargin()
+                                    }
                                 )
                                 .build()
                         )
@@ -158,7 +220,7 @@ class CCSharePreProcessor : AbstractProcessor() {
                                 """
                             |if ($valueName == value) return
                             |$valueName = value
-                            |sp.edit().$setName.apply()
+                            |$SP.edit().$setName.apply()
                             |""".trimMargin()
                             ).build()
                         )
@@ -195,5 +257,9 @@ class CCSharePreProcessor : AbstractProcessor() {
         private const val TAG = "CCSharePreProcessor"
         private const val PRE_FIX = "CCSP"
         private const val LOG = false
+        private const val SP = "sp"
+        private const val ENCRYPTUTIL = "encryptUtil"
+        private const val SP_ORIGIN_VALUE = "spOriginValue"
+
     }
 }

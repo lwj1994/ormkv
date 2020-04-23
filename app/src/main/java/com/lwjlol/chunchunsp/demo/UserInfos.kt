@@ -1,13 +1,19 @@
 package com.lwjlol.chunchunsp.demo
 
 import com.lwjlol.ccsp.annotation.ColumnInfo
+import com.lwjlol.ccsp.annotation.Encrypt
 import com.lwjlol.ccsp.annotation.Entity
 import com.lwjlol.ccsp.annotation.Skip
 
 /**
  * @author luwenjie on 2019-08-11 20:16:58
  */
-@Entity(getSpCode = "SPStores.sp")
+@Entity(getSpCode = "com.lwjlol.chunchunsp.demo.MainActivity.sp")
+@Encrypt(
+    getEncryptCode = "com.lwjlol.chunchunsp.demo.MainActivity.encrypt",
+    encryptClass = "com.lwjlol.chunchunsp.demo.MyCcspCrypt",
+    secret = "123wdskdhasdguyt1yu22eqwd"
+)
 data class UserInfos(
     @Skip
     val skip: String,
@@ -20,7 +26,7 @@ data class UserInfos(
     @ColumnInfo(defValue = "false")
     val isMan: Boolean,
     @ColumnInfo(defValue = "0F")
-    val temperature: Float
+    private val temperature: Float
 
 ) {
 

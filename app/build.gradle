@@ -38,7 +38,7 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test:runner:1.2.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
-    compileOnly project(path: ':ccsp')
+    implementation project(path: ':ccsp')
     kapt project(path: ':compiler')
 //    implementation 'com.lwjlol.ccsp:ccsp:0.0.1'
 //    kapt 'com.lwjlol.ccsp:compiler:0.0.1'
