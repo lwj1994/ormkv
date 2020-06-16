@@ -91,6 +91,11 @@ class CCSharePreProcessor : AbstractProcessor() {
         return true
     }
 
+
+    private fun appendd(s:String): String {
+        return "\"\"\"$s\"\"\""
+    }
+
     private fun generateClass(
         className: String,
         packageName: String,
@@ -164,7 +169,7 @@ class CCSharePreProcessor : AbstractProcessor() {
                 }
 
                 val getName = when {
-                    paramType.contains("String") -> """getString("$propertyName", "$defValue")"""
+                    paramType.contains("String") -> "getString(\"$propertyName\", \"\"\"$defValue\"\"\")"
                     paramType.contains("Boolean") -> "getBoolean(\"$propertyName\", $defValue)"
                     paramType.contains("Int") -> "getInt(\"$propertyName\", $defValue)"
                     paramType.contains("Long") -> "getLong(\"$propertyName\", $defValue)"
@@ -195,7 +200,7 @@ class CCSharePreProcessor : AbstractProcessor() {
                                         """
                                     |if ($valueName == null) {
                                     |   val $SP_ORIGIN_VALUE = $SP.$getName ?:""
-                                    |   if($SP_ORIGIN_VALUE == "$defValue"){
+                                    |   if($SP_ORIGIN_VALUE == ${appendd(defValue)}){
                                     |     $valueName = $SP_ORIGIN_VALUE     
                                     |   }else{
                                     |     $valueName = ${getValueCode(
@@ -229,9 +234,9 @@ class CCSharePreProcessor : AbstractProcessor() {
                         )
                         .build()
                 )
-                if (clear){
+                if (clear) {
                     if (typeName.toString().contains("String")) {
-                        clearCode.append("$propertyName = \"$defValue\" \n")
+                        clearCode.append("$propertyName = \"\"\"$defValue\"\"\" \n")
                     } else {
                         clearCode.append("$propertyName = $defValue \n")
                     }

@@ -8,20 +8,22 @@ implementation 'com.lwjlol.ccsp:ccsp:0.0.2'
 kapt 'com.lwjlol.ccsp:compiler:0.0.2'
  ```
 
- ccsp 是一个结合内存和 sp 存储的工具. 存储时将字段信息暂时存入内存中,同时存入 sp. 读取时优先从内存中取出。避免反复的调用 sp 引起不必要的 IO。
+ ccsp 是一个将实体 Bean 类映射成 Android SharedPreference 数据的工具。
 
 * 类似将数据库映射到实体类的编写方式，方便管理
-* 高效存取
 * 支持对 String 值加密
 
- # 使用方法
- 你可以直接参考 sample 使用.
+## 使用方法  
 
- ccsp 将 sp 字段信息映射到一个实体 Entity 类.
+你可以直接参考 sample 使用.
 
- 在一个实体类添加如下注解:
+ccsp 将 一个实体 Entity 类 生成 sp 数据信息.
+
+
+例如，和一些 sql 数据库（比如 Room）的注解类似，在一个 `UserInfos` Bean 类添加如下注解:
+`@Entity` 标识这个类会是一个 sp 的实体类，`@getSpCode` 是获取 `SharedPreference` 实例的代码(要带上包名)，`@ColumnInfo`可以自定义字段的默认值和一些其他信息。
 ```
-@Entity(name = "UserInfoSP", getSpCode = "SPStores.sp")
+@Entity(name = "UserInfoSP", getSpCode = "com.a.b.SPStores.sp")
 data class UserInfos(
     @ColumnInfo(defValue = "david")
     val name: String,
@@ -33,6 +35,30 @@ data class UserInfos(
     val isMan: Boolean
 )
 ```
+然后编译后会自动在 `UserInfos` 的同级目录生成一个 `UserInfoSP` 类，可以直接使用此类进行如下操作：
+```
+// 直接给 sp 的字段赋值
+UserInfoSP.name = "qweq"
+UserInfoSP.age = 123
+UserInfoSP.id = 1231321
+UserInfoSP.isMan = false
+
+// 直接读取字段信息
+println(UserInfoSP.name)
+
+
+// 清除所有sp信息，恢复为默认值
+UserInfoSP.clear()
+```
+
+支持存储的字段类型：
+
+* String
+* Int
+* Long
+* Boolean
+* Float
+
 ## 注解的含义
 
 ### @Entity
@@ -42,11 +68,10 @@ data class UserInfos(
 ```
 @Entity(name = "UserInfoSP", getSpCode = "SPStores.sp")
 ```
-`name`: 指定生成文件的名字
 
-`getSpCode`: 生成一个 sp 实例的代码.
+#### `name`: 指定生成文件的名字
 
-__注意:  `getSpCode` 必须包含包名路径，如 `com.a.b.SPStores.sp`
+#### `getSpCode`: 生成一个 sp 实例的代码.__注意:  `getSpCode` 必须包含包名路径，如 `com.a.b.SPStores.sp`__
 
 例: 在一个地方定义一个 `SPStores` 来存储所有的 sp 仓库
 
@@ -55,116 +80,56 @@ object SPStores {
     val sp = App.context.getSharedPreferences("ccsp", Context.MODE_PRIVATE)
 }
 ```
+
+
 那么 `getSpCode = SPStores.sp`.
 
 这样设计可能有些粗糙. 但是 sp 的生成需要引入 context. 所以暂时这样妥协.
+
 
 ### @ColumnInfo
 
 对实体类中的字段信息进行补充. 不注释 @ColumnInfo 时，默认为基本类型的初始值。
 
-`defValue`: 指定一个默认值.
+#### `defValue`.
+为字段数据指定一个默认值，统一用 String 来指定默认值, 如给 Boolean 类型的字段指定默认值就是 `"false"`.
 
-统一用 String 来指定默认值, 如给 Boolean 类型的字段指定默认值就是 `"false"`.
+#### `clear`
+
+清空 sp 所有信息时，是否加入。false : clear() 方法不会清空此字段数据，true: clear() 方法会清空此字段数据，默认为 true
+
 
 ### @Skip
-跳过某个属性
-
+跳过某个属性，如果不想让某个字段参与 sp 数据的生成，可以加上这个。
 编译后 ccsp  会生成一个如下文件, 你就可以直接使用这个类来存储 sp 字段信息.
 
 
 
 ### @Encrypt
-定义值的字符串加密信息，只会加密 value，不会加密 key，因为考虑本身代码会混淆，再加密也没必要。
-只提供一个字符串加密。
 
+定义值的字符串的加密信息
 
-`getEncryptCode`：同 `getSpCode` 你自己的加密工具类，需继承 `CcspEncrypt`，代码需要包含包名，如 `com.a.b.Until.encrypt`
+#### `getEncryptCode`
+
+你的 aes 加密工具类__实例__的路径，aes加密工具类需继承 `CcspEncrypt`，需要包含包名，如 `com.a.b.Until.encrypt`
 `secret`: 加密的密码
+
+```
+package com.a.b
+
+// 你自己的加密类，实现 aes 加密逻辑
+class MyCcspEncrypt:CcspEncrypt{
+
+}
+
+Class Util{
+  val encrypt = MyCcspEncrypt()
+}
+```
+
 
 ----
 
-```
-object UserInfos_CCSP {
-  private val sp: SharedPreferences = SPStores.sp
-
-  private var _name: String? = null
-
-  var name: String
-    get() {
-      if (_name == null) {
-         _name = sp.getString("name", "david")
-      }
-      return _name!!
-    }
-    set(value) {
-      _name = value
-      sp.edit().putString("name", value).apply()
-    }
-
-  private var _age: Int? = null
-
-  var age: Int
-    get() {
-      if (_age == null) {
-         _age = sp.getInt("age", 12)
-      }
-      return _age!!
-    }
-    set(value) {
-      _age = value
-      sp.edit().putInt("age", value).apply()
-    }
-
-  private var _id: Long? = null
-
-  var id: Long
-    get() {
-      if (_id == null) {
-         _id = sp.getLong("id", 12312312)
-      }
-      return _id!!
-    }
-    set(value) {
-      _id = value
-      sp.edit().putLong("id", value).apply()
-    }
-
-  private var _isMan: Boolean? = null
-
-  var isMan: Boolean
-    get() {
-      if (_isMan == null) {
-         _isMan = sp.getBoolean("isMan", false)
-      }
-      return _isMan!!
-    }
-    set(value) {
-      _isMan = value
-      sp.edit().putBoolean("isMan", value).apply()
-    }
-
-  fun clear() {
-    name = "david"
-    age = 12
-    id = 12312312
-    isMan = false
-  }
-}
 
 
-```
 
-更改 sp 信息:
-```
-UserInfos_CCSP.name = "mayun"
-UserInfos_CCSP.age = 44
-```
-
-## 支持存储的字段类型
-
-* String
-* Int
-* Long
-* Boolean
-* Float

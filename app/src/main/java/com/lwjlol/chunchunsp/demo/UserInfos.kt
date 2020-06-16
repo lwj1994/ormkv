@@ -16,7 +16,7 @@ import com.lwjlol.ccsp.annotation.Skip
 data class UserInfos(
     @Skip
     val skip: String,
-    @ColumnInfo(defValue = "david")
+    @ColumnInfo(defValue = """<img src="{xbtc_url}" alt="{xbtc_file_name}.{xbtc_mimetype}" title="{xbtc_file_name}"/>""")
     val name: String,
     @ColumnInfo(defValue = "12")
     val age: Int,
