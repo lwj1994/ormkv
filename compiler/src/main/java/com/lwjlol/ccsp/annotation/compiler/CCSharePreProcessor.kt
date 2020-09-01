@@ -4,7 +4,7 @@ import com.lwjlol.ccsp.CcspEncrypt
 import com.lwjlol.ccsp.annotation.ColumnInfo
 import com.lwjlol.ccsp.annotation.Encrypt
 import com.lwjlol.ccsp.annotation.Entity
-import com.lwjlol.ccsp.annotation.Skip
+import com.lwjlol.ccsp.annotation.Ignore
 import com.squareup.kotlinpoet.*
 import java.io.File
 import javax.annotation.processing.*
@@ -20,7 +20,7 @@ import javax.tools.Diagnostic
 
 //@AutoService(value = [Process::class])
 @SupportedSourceVersion(value = SourceVersion.RELEASE_8)
-@SupportedAnnotationTypes(value = ["com.lwjlol.ccsp.annotation.Entity", "com.lwjlol.ccsp.annotation.ColumnInfo", "com.lwjlol.ccsp.annotation.Skip", "com.lwjlol.ccsp.annotation.Encrypt"])
+@SupportedAnnotationTypes(value = ["com.lwjlol.ccsp.annotation.Entity", "com.lwjlol.ccsp.annotation.ColumnInfo", "com.lwjlol.ccsp.annotation.Ignore", "com.lwjlol.ccsp.annotation.Encrypt"])
 class CCSharePreProcessor : AbstractProcessor() {
     private var messager: Messager? = null
 
@@ -126,8 +126,8 @@ class CCSharePreProcessor : AbstractProcessor() {
         val clearCode = StringBuilder()
         allMembers.forEach { member ->
             if (member.kind.isField && !member.modifiers.contains(Modifier.STATIC)) {
-                val spSkip = member.getAnnotation(Skip::class.java)
-                if (spSkip != null) return@forEach
+                val spIgnore = member.getAnnotation(Ignore::class.java)
+                if (spIgnore != null) return@forEach
                 val spColumnInfo = member.getAnnotation(ColumnInfo::class.java)
                 val defInitValue = spColumnInfo?.defValue ?: ""
                 val clear = spColumnInfo?.clear ?: true

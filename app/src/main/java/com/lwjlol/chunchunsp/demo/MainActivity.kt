@@ -1,8 +1,9 @@
 package com.lwjlol.chunchunsp.demo
 
-import android.content.Context
+import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import com.lwjlol.chunchunsp.demo.sp.UserSp
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
@@ -14,37 +15,32 @@ class MainActivity : AppCompatActivity() {
 
         updateButton.setOnClickListener {
             if (nameEditText.text.isNotEmpty()) {
-                UserInfos_CCSP.name = nameEditText.text.toString()
+                UserSp.name = nameEditText.text.toString()
             }
             if (ageEditText.text.isNotEmpty()) {
-                UserInfos_CCSP.age = ageEditText.text.toString().toDouble().toInt()
+                UserSp.age = ageEditText.text.toString().toDouble().toInt()
             }
             if (idEditText.text.isNotEmpty()) {
-                UserInfos_CCSP.id = idEditText.text.toString().toDouble().toLong()
+                UserSp.id = idEditText.text.toString().toDouble().toLong()
             }
-            UserInfos_CCSP.isMan = manCheckBox.isChecked
-            UserInfos_CCSP.temperature = 36.3F
+            UserSp.isMan = manCheckBox.isChecked
+            UserSp.temperature = 36.3F
             updateText()
         }
 
         clearButton.setOnClickListener {
-            UserInfos_CCSP.clear()
+            UserSp.clear()
             updateText()
         }
     }
 
+    @SuppressLint("SetTextI18n")
     private fun updateText() {
-        debugTextView.text = "name = ${UserInfos_CCSP.name}" +
-                "\n age = ${UserInfos_CCSP.age}" +
-                "\n id = ${UserInfos_CCSP.id}" +
-                "\n isMan = ${UserInfos_CCSP.isMan}" +
-                "\n temperature = ${UserInfos_CCSP.temperature}"
+        debugTextView.text = "name = ${UserSp.name}" +
+                "\n age = ${UserSp.age}" +
+                "\n id = ${UserSp.id}" +
+                "\n isMan = ${UserSp.isMan}" +
+                "\n temperature = ${UserSp.temperature}"
     }
 
-    companion object {
-        val sp = App.context.getSharedPreferences("ccsp", Context.MODE_PRIVATE)
-        val encrypt by lazy {
-            MyCcspCrypt()
-        }
-    }
 }

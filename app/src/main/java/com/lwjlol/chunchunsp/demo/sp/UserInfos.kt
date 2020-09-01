@@ -1,22 +1,22 @@
-package com.lwjlol.chunchunsp.demo
+package com.lwjlol.chunchunsp.demo.sp
 
 import com.lwjlol.ccsp.annotation.ColumnInfo
 import com.lwjlol.ccsp.annotation.Encrypt
 import com.lwjlol.ccsp.annotation.Entity
-import com.lwjlol.ccsp.annotation.Skip
+import com.lwjlol.ccsp.annotation.Ignore
 
 /**
  * @author luwenjie on 2019-08-11 20:16:58
  */
-@Entity(getSpCode = "com.lwjlol.chunchunsp.demo.MainActivity.sp")
+@Entity(name = "UserSp",getSpCode = "SpStore.sp")
 @Encrypt(
-    getEncryptCode = "com.lwjlol.chunchunsp.demo.MainActivity.encrypt",
+    getEncryptCode = "SpUtil.encrypt",
     secret = "123wdskdhasdguyt1yu22eqwd"
 )
 data class UserInfos(
-    @Skip
+    @Ignore
     val skip: String,
-    @ColumnInfo(defValue = """<img src="{xbtc_url}" alt="{xbtc_file_name}.{xbtc_mimetype}" title="{xbtc_file_name}"/>""")
+    @ColumnInfo(defValue = "name")
     val name: String,
     @ColumnInfo(defValue = "12")
     val age: Int,

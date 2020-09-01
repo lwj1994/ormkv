@@ -6,7 +6,7 @@ package com.lwjlol.ccsp.annotation
  */
 @Target(AnnotationTarget.FIELD)
 @Retention(AnnotationRetention.SOURCE)
-annotation class Skip {
+annotation class Ignore {
 
     companion object {
         private const val TAG = "Skip"

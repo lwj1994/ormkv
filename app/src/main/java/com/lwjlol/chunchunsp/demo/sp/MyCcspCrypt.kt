@@ -1,6 +1,7 @@
-package com.lwjlol.chunchunsp.demo
+package com.lwjlol.chunchunsp.demo.sp
 
 import com.lwjlol.ccsp.CcspEncrypt
+import com.lwjlol.chunchunsp.demo.AESCrypt
 import java.security.GeneralSecurityException
 
 class MyCcspCrypt : CcspEncrypt() {
