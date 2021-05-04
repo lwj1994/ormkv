@@ -20,8 +20,4 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 }
 
-sourceCompatibility = "8"
-targetCompatibility = "8"
-
-
-apply from: '../deploy.gradle'
+//apply from: '../deploy.gradle'

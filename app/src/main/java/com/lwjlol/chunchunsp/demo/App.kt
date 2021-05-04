@@ -3,7 +3,6 @@ package com.lwjlol.chunchunsp.demo
 import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
-import com.lwjlol.ccsp.CcspEncrypt
 
 /**
  * @author luwenjie on 2019-08-13 23:35:43

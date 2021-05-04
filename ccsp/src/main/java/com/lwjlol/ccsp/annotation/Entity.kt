@@ -2,8 +2,8 @@ package com.lwjlol.ccsp.annotation
 
 
 /**
- * @param getSpCode 返回一个 sp 实例的代码，尽量和 entity 的包名一样，如 SpStore.sp1，如果不一样需要带上包名 com.a.b.SpStore.sp1（release 需要 keep 住混淆）
- * @param name 别名
+ * @param getSpCode com.a.b.SpStore.sp
+ * @param name a name , can include package. name or  com.lwjl.name is also ok.
  */
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.SOURCE)

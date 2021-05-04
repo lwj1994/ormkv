@@ -12,7 +12,6 @@ android {
         targetCompatibility 1.8
     }
     compileSdkVersion 29
-    buildToolsVersion "29.0.1"
     defaultConfig {
         applicationId "com.lwjlol.chunchunsp.demo"
         minSdkVersion 19

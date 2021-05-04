@@ -3,7 +3,7 @@ package com.lwjlol.chunchunsp.demo
 import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import com.lwjlol.chunchunsp.demo.sp.UserSp
+import com.test.UserSp
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {

@@ -21,12 +21,9 @@ ext {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation"org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    implementation 'com.squareup:kotlinpoet:1.5.0'
+    implementation 'com.squareup:kotlinpoet:1.8.0'
+    implementation 'com.squareup:kotlinpoet-metadata:1.8.0'
+    implementation 'com.squareup:kotlinpoet-metadata-specs:1.8.0'
     implementation project(path: ':ccsp')
 
 }
-
-sourceCompatibility = "8"
-targetCompatibility = "8"
-
-apply from: '../deploy.gradle'

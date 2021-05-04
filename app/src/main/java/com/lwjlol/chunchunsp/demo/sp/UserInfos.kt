@@ -1,16 +1,16 @@
 package com.lwjlol.chunchunsp.demo.sp
 
 import com.lwjlol.ccsp.annotation.ColumnInfo
-import com.lwjlol.ccsp.annotation.Encrypt
+import com.lwjlol.ccsp.annotation.SymmetricEncryptionInfo
 import com.lwjlol.ccsp.annotation.Entity
 import com.lwjlol.ccsp.annotation.Ignore
 
 /**
  * @author luwenjie on 2019-08-11 20:16:58
  */
-@Entity(name = "UserSp",getSpCode = "SpStore.sp")
-@Encrypt(
-    getEncryptCode = "SpUtil.encrypt",
+@Entity(name = "com.test.UserSp", getSpCode = "com.lwjlol.chunchunsp.demo.sp.SpStore.sp")
+@SymmetricEncryptionInfo(
+    getEncryptCode = "com.lwjlol.chunchunsp.demo.sp.SpUtil.encrypt",
     secret = "123wdskdhasdguyt1yu22eqwd"
 )
 data class UserInfos(
