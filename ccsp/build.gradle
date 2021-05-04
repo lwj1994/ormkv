@@ -3,7 +3,7 @@ apply plugin: 'kotlin'
 apply plugin: 'com.github.dcendents.android-maven'
 
 ext {
-    libVersion = "0.2.0"
+    libVersion = "0.3.0"
     groupId = "com.lwjlol.ccsp"
     artifactId = "ccsp"
     pkg_name = "ccsp"
@@ -22,4 +22,7 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 }
 
-//apply from: '../deploy.gradle'
+sourceCompatibility = "8"
+targetCompatibility = "8"
+
+apply from: '../deploy.gradle'
