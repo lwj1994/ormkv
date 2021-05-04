@@ -123,7 +123,9 @@ class CCSharePreProcessor : AbstractProcessor() {
                 KModifier.PRIVATE
             ).initializer(entity.getSpCode).build()
         )
+        // clear code
         val clearCode = StringBuilder()
+        val toStringCode = StringBuilder()
         allMembers.forEach { member ->
             if (member.kind.isField && !member.modifiers.contains(Modifier.STATIC)) {
                 val spIgnore = member.getAnnotation(Ignore::class.java)
@@ -131,12 +133,12 @@ class CCSharePreProcessor : AbstractProcessor() {
                 val spColumnInfo = member.getAnnotation(ColumnInfo::class.java)
                 val defInitValue = spColumnInfo?.defValue ?: ""
                 val clear = spColumnInfo?.clear ?: true
-                val name = member.asType().asTypeName()
+                val memberTypeName = member.asType().asTypeName()
                 val valueName = "_${member.simpleName}"
                 val propertyName = member.simpleName.toString()
                 print("propertyName = $propertyName")
                 val typeName =
-                    if (name.toString().contains("String")) ClassName("kotlin", "String") else name
+                    if (memberTypeName.toString().contains("String")) ClassName("kotlin", "String") else memberTypeName
 
                 typeSpec.addProperty(
                     PropertySpec.builder(valueName, typeName.copy(true))
@@ -228,6 +230,7 @@ class CCSharePreProcessor : AbstractProcessor() {
                         )
                         .build()
                 )
+                toStringCode.append("|$propertyName = $$propertyName\n")
                 if (clear) {
                     if (typeName.toString().contains("String")) {
                         clearCode.append("$propertyName = \"\"\"$defValue\"\"\" \n")
@@ -237,8 +240,7 @@ class CCSharePreProcessor : AbstractProcessor() {
                 }
             }
         }
-
-
+        // add clear()
         typeSpec.addFunction(
             FunSpec.builder("clear")
                 .addCode(
@@ -247,10 +249,21 @@ class CCSharePreProcessor : AbstractProcessor() {
             """.trimMargin()
                 )
                 .build()
-        )
+        ).addToStringFun("return \"\"\"$toStringCode\"\"\".trimMargin()")
+        // write file
         val file = FileSpec.builder(generatePackageName, fileName).addType(typeSpec.build()).build()
         val kaptKotlinGeneratedDir = processingEnv.options[KAPT_KOTLIN_GENERATED_OPTION_NAME]
         file.writeTo(File(kaptKotlinGeneratedDir, "ccsp"))
+    }
+
+    private fun TypeSpec.Builder.addToStringFun(code: String): TypeSpec.Builder {
+        return addFunction(
+            FunSpec.builder("toString")
+                .returns(String::class)
+                .addModifiers(KModifier.OVERRIDE)
+                .addCode(code)
+                .build()
+        )
     }
 
     companion object {
