@@ -33,7 +33,7 @@ android {
 }
 
 dependencies {
-  compileOnly project(path: ':ormkv')
+  compileOnly project(path: ':core')
   compileOnly('com.tencent:mmkv-static:1.2.8')
   compileOnly 'androidx.appcompat:appcompat:1.0.2'
 

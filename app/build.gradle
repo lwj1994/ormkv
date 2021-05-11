@@ -35,9 +35,9 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test:runner:1.2.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
-    implementation project(path: ':ormkv')
-    implementation project(path: ':ormkv_sp')
-    implementation project(path: ':ormkv_mmkv')
+    implementation project(path: ':core')
+    implementation project(path: ':sharedPreferences')
+    implementation project(path: ':mmkv')
     implementation('com.tencent:mmkv-static:1.2.8')
 
     kapt project(path: ':compiler')

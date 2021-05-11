@@ -33,7 +33,7 @@ android {
 }
 
 dependencies {
-  compileOnly project(path: ':ormkv')
+  compileOnly project(path: ':core')
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
   testImplementation 'junit:junit:4.+'
   androidTestImplementation 'androidx.test.ext:junit:1.1.2'
