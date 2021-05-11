@@ -1,8 +1,6 @@
 apply plugin: 'com.android.application'
 
 apply plugin: 'kotlin-android'
-
-apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
 
 
@@ -37,7 +35,11 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test:runner:1.2.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
-    implementation project(path: ':ccsp')
+    implementation project(path: ':ormkv')
+    implementation project(path: ':ormkv_sp')
+    implementation project(path: ':ormkv_mmkv')
+    implementation('com.tencent:mmkv-static:1.2.8')
+
     kapt project(path: ':compiler')
 //    implementation 'com.lwjlol.ccsp:ccsp:0.0.1'
 //    kapt 'com.lwjlol.ccsp:compiler:0.0.1'

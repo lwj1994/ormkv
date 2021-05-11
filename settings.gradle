@@ -1,1 +1,4 @@
-include ':app', ':compiler', ':ccsp'
+rootProject.name = "ormkv"
+include ':app', ':compiler', ':ormkv'
+include ':ormkv_sp'
+include ':ormkv_mmkv'
