@@ -3,12 +3,12 @@
  ![](https://img.shields.io/badge/license-MIT-orange.svg)
 
 ```
-    allprojects {
-			repositories {
-				...
-				maven { url 'https://jitpack.io' }
-			}
-    }
+allprojects {
+		repositories {
+		...
+    maven { url 'https://jitpack.io'}
+  }
+}
 ```
 
  ```gradle
