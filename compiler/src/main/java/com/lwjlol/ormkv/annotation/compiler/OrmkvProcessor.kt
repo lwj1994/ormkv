@@ -5,6 +5,9 @@ import com.lwjlol.ormkv.annotation.ColumnInfo
 import com.lwjlol.ormkv.annotation.Entity
 import com.lwjlol.ormkv.annotation.Ignore
 import com.squareup.kotlinpoet.*
+import com.squareup.kotlinpoet.metadata.KotlinPoetMetadataPreview
+import com.squareup.kotlinpoet.metadata.specs.toTypeSpec
+import com.squareup.kotlinpoet.metadata.toImmutableKmClass
 import java.io.File
 import javax.annotation.processing.*
 import javax.lang.model.SourceVersion
@@ -17,6 +20,7 @@ import javax.tools.Diagnostic
  * @author luwenjie on 2019-08-11 19:17:41
  */
 //@AutoService(value = [Process::class])
+@Suppress("DEPRECATION")
 @SupportedSourceVersion(value = SourceVersion.RELEASE_8)
 @SupportedAnnotationTypes(value = ["com.lwjlol.ormkv.annotation.Entity", "com.lwjlol.ormkv.annotation.ColumnInfo", "com.lwjlol.ormkv.annotation.Ignore"])
 class OrmkvProcessor : AbstractProcessor() {
@@ -83,10 +87,11 @@ class OrmkvProcessor : AbstractProcessor() {
         val clearCode = StringBuilder()
         val toStringCode = StringBuilder()
         val toModelCode = StringBuilder()
-        allMembers.forEachIndexed { index, member ->
+
+        var toModelError = false
+        allMembers.forEachIndexed { _, member ->
             if (member.kind.isField && !member.modifiers.contains(Modifier.STATIC)) {
                 val ignore = member.getAnnotation(Ignore::class.java)
-
                 val spColumnInfo = member.getAnnotation(ColumnInfo::class.java)
                 val defInitValue = spColumnInfo?.defValue ?: ""
                 val clear = spColumnInfo?.enableReset ?: true
@@ -125,13 +130,17 @@ class OrmkvProcessor : AbstractProcessor() {
                             res
                         }
                     }
-                    else -> defInitValue
+                    else -> "error"
                 }
-                if (ignore != null) {
-                    if (paramType.contains("String")){
+                if (ignore != null && !toModelError) {
+                    if (defValue == "error") {
+                        toModelError = true
+                        return@forEachIndexed
+                    }
+                    if (paramType.contains("String")) {
                         toModelCode.append("|$propertyName = \"$defValue\", \n")
-                    }else{
-                        toModelCode.append("|$propertyName = \"$defValue, \n")
+                    } else {
+                        toModelCode.append("|$propertyName = $defValue, \n")
                     }
                     return@forEachIndexed
                 }
@@ -203,7 +212,10 @@ class OrmkvProcessor : AbstractProcessor() {
                 )
                 .build()
         ).addToStringFun("return \"\"\"$toStringCode\"\"\".trimMargin()")
-            .addToModel(toModelCode.toString(), "$packageName.$className")
+
+        if (!toModelError) {
+            typeSpec.addToModel(toModelCode.toString(), "$packageName.$className")
+        }
 
         // write file
         val file = FileSpec.builder(generatePackageName, fileName).addType(typeSpec.build()).build()
@@ -239,7 +251,7 @@ class OrmkvProcessor : AbstractProcessor() {
         const val KAPT_KOTLIN_GENERATED_OPTION_NAME = "kapt.kotlin.generated"
         private const val TAG = "OrmkvProcessor"
         private const val END_FIX = "ormkv"
-        private const val LOG = true
+        private const val LOG = false
         private const val HANDLER = "kvHandler"
     }
 }
