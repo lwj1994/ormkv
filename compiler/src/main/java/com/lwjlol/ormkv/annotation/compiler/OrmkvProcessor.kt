@@ -5,9 +5,6 @@ import com.lwjlol.ormkv.annotation.ColumnInfo
 import com.lwjlol.ormkv.annotation.Entity
 import com.lwjlol.ormkv.annotation.Ignore
 import com.squareup.kotlinpoet.*
-import com.squareup.kotlinpoet.metadata.KotlinPoetMetadataPreview
-import com.squareup.kotlinpoet.metadata.specs.toTypeSpec
-import com.squareup.kotlinpoet.metadata.toImmutableKmClass
 import java.io.File
 import javax.annotation.processing.*
 import javax.lang.model.SourceVersion
@@ -87,6 +84,7 @@ class OrmkvProcessor : AbstractProcessor() {
         val clearCode = StringBuilder()
         val toStringCode = StringBuilder()
         val toModelCode = StringBuilder()
+        val updateCode = StringBuilder()
 
         var toModelError = false
         allMembers.forEachIndexed { _, member ->
@@ -192,6 +190,7 @@ class OrmkvProcessor : AbstractProcessor() {
                 )
                 toStringCode.append("|$propertyName = $$propertyName\n")
                 toModelCode.append("|$propertyName = $propertyName, \n")
+                updateCode.append("|$propertyName = model.$propertyName\n")
                 if (clear) {
                     if (typeName.toString().contains("String")) {
                         clearCode.append("$propertyName = \"\"\"$defValue\"\"\" \n")
@@ -211,8 +210,8 @@ class OrmkvProcessor : AbstractProcessor() {
             """.trimMargin()
                 )
                 .build()
-        ).addToStringFun("return \"\"\"$toStringCode\"\"\".trimMargin()")
-
+        ).addToString("return \"\"\"$toStringCode\"\"\".trimMargin()")
+            .addUpdate(updateCode.toString().trimMargin(), ClassName(packageName, className))
         if (!toModelError) {
             typeSpec.addToModel(toModelCode.toString(), "$packageName.$className")
         }
@@ -223,7 +222,7 @@ class OrmkvProcessor : AbstractProcessor() {
         file.writeTo(File(kaptKotlinGeneratedDir, END_FIX))
     }
 
-    private fun TypeSpec.Builder.addToStringFun(code: String): TypeSpec.Builder {
+    private fun TypeSpec.Builder.addToString(code: String): TypeSpec.Builder {
         return addFunction(
             FunSpec.builder("toString")
                 .returns(String::class)
@@ -243,6 +242,15 @@ class OrmkvProcessor : AbstractProcessor() {
                     ${code.trim('\n').trim(' ').trim(',')})             
                 """.trimMargin()
                 )
+                .build()
+        )
+    }
+
+    private fun TypeSpec.Builder.addUpdate(code: String, typeName: TypeName): TypeSpec.Builder {
+        return addFunction(
+            FunSpec.builder("update")
+                .addParameter(ParameterSpec.builder("model",typeName).build())
+                .addCode(code)
                 .build()
         )
     }
