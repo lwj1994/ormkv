@@ -117,7 +117,13 @@ class OrmkvProcessor : AbstractProcessor() {
                     paramType.contains("String") -> if (defInitValue.isNotEmpty()) defInitValue else ""
                     paramType.contains("Boolean") -> "${if (defInitValue.isNotEmpty()) defInitValue.toBoolean() else false}"
                     paramType.contains("Int") -> "${if (defInitValue.isNotEmpty()) defInitValue.toInt() else 0}"
-                    paramType.contains("Long") -> "${if (defInitValue.isNotEmpty()) defInitValue.toLong() else 0}"
+                    paramType.contains("Long") -> "${if (defInitValue.isNotEmpty()) defInitValue.toLong() else 0}".run {
+                        if (!contains("L")){
+                            "${this}L"
+                        }else{
+                            this
+                        }
+                    }
                     paramType.contains("ByteArray") -> "ByteArray(0)"
                     paramType.contains("Float") -> {
                         val res =

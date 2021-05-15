@@ -3,6 +3,7 @@ package com.lwjlol.ormkv.demo
 import android.os.Parcel
 import android.os.Parcelable
 import android.os.Parcelable.Creator
+import com.lwjlol.ormkv.annotation.ColumnInfo
 import com.lwjlol.ormkv.annotation.Entity
 import com.lwjlol.ormkv.annotation.Ignore
 
@@ -12,6 +13,8 @@ data class ConfigModel(
   val value2: String,
   @Ignore
   val value3: ByteArray,
+  @ColumnInfo(defValue = "22")
+  val value4: Long,
   @Ignore
   val a: A
 )
