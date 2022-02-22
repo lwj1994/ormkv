@@ -18,7 +18,10 @@ allprojects {
 	   implementation "com.github.lwj1994.ormkv:sharedPreferences:${latestVersion}"
 	   // option :if you use mmkv
 	   implementation "com.github.lwj1994.ormkv:mmkv:${latestVersion}"
+	   // kapt
 	   kapt "com.github.lwj1994.ormkv:compiler:${latestVersion}"
+	   // ksp
+	   ksp "com.github.lwj1994.ormkv:compiler:${latestVersion}"
 	}
 ```
 
