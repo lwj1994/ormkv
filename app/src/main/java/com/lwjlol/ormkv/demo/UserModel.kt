@@ -7,7 +7,11 @@ import com.lwjlol.ormkv.annotation.Ignore
 /**
  * @author luwenjie on 2019-08-11 20:16:58
  */
-@Entity(className = "com.test.UserSp", handlerCodeReference = "com.lwjlol.ormkv.demo.KvStore.sp")
+@Entity(
+    prefixKeyWithClassName = true,
+    className = "com.test.UserSp",
+    handlerCodeReference = "com.lwjlol.ormkv.demo.KvStore.sp"
+)
 data class UserModel(
     @Ignore
     val skip: String,
