@@ -13,7 +13,7 @@ import com.lwjlol.ormkv.annotation.Ignore
 )
 data class UserModel(
     @Ignore
-    val skip: String,
+//    val skip: String,
     @ColumnInfo(defValue = "qweqweqe")
     val name: String,
     @Ignore

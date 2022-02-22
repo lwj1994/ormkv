@@ -1,22 +1,28 @@
 package com.lwjlol.ormkv.annotation.compiler
 
+import com.google.devtools.ksp.containingFile
 import com.google.devtools.ksp.getConstructors
-import com.google.devtools.ksp.getDeclaredProperties
 import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.symbol.*
+import com.google.devtools.ksp.validate
 import com.lwjlol.ormkv.OrmKvHandler
 import com.lwjlol.ormkv.annotation.ColumnInfo
 import com.lwjlol.ormkv.annotation.Entity
 import com.lwjlol.ormkv.annotation.Ignore
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ksp.writeTo
+import java.io.IOException
 import java.io.OutputStream
 
 /**
  * @author luwenjie on 2022/2/21 20:21:50
  */
 fun OutputStream.appendText(str: String) {
-    this.write(str.toByteArray())
+    try {
+        this.write(str.toByteArray())
+    } catch (e: IOException) {
+
+    }
 }
 
 class KspOrmkvProcessor(
@@ -26,7 +32,6 @@ class KspOrmkvProcessor(
 ) : SymbolProcessor {
     var invoked = false
     lateinit var file: OutputStream
-
     fun emit(s: String, indent: String) {
         if (!LOG) return
         file.appendText("$indent$s\n")
@@ -34,31 +39,37 @@ class KspOrmkvProcessor(
 
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
-        if (invoked) {
-            return emptyList()
-        }
-        if (LOG) {
+        if (invoked) return emptyList()
+        if (LOG && !invoked) {
             file = codeGenerator.createNewFile(Dependencies(false), "", TAG, "log")
         }
+        emit("$invoked", "invoked $resolver  ")
         emit("$TAG: init($options)", "")
 
+        val entityClassName = Entity::class.qualifiedName ?: ""
+        emit("$TAG: $entityClassName", "entityClassName:")
 
-        val files = resolver.getAllFiles()
-        emit("$TAG: process()", "")
-        val visitor = OrmkvVisitor()
-        for (file in files) {
-            emit("$TAG: processing ${file.fileName}", "\n")
-            file.accept(visitor, Unit)
-        }
+        val entitySymbols = resolver.getSymbolsWithAnnotation(entityClassName)
+        val ret = entitySymbols.filter { !it.validate() }.toList()
+
+        emit("$TAG: process() ${entitySymbols.count()} entitySymbols", "")
+        emit("$TAG: process() ${resolver.getAllFiles().count()} AllFiles", "")
+        val ormkvVisitor = OrmkvVisitor()
+        entitySymbols.filter { it is KSClassDeclaration && it.validate() }
+            .forEach {
+                emit("$TAG: processing ${it.containingFile?.filePath}", "\n")
+                it.accept(ormkvVisitor, Unit)
+            }
         invoked = true
-        return emptyList()
+        return ret
     }
 
     private fun generateClass(
         className: String,
         packageName: String,
         parameters: List<KSValueParameter>,
-        entityArgs: Map<String, Any?>
+        entityArgs: Map<String, Any?>,
+        source: KSFile
     ) {
         val classNameArg = entityArgs["className"] as? String ?: ""
         val prefixKeyArg = entityArgs["prefixKeyWithClassName"] as? Boolean ?: false
@@ -95,6 +106,10 @@ class KspOrmkvProcessor(
 
         var toModelError = false
         parameters.forEachIndexed { _, member ->
+            emit(
+                "${member.type.resolve().declaration.qualifiedName?.asString() ?: ""}:${member.name?.asString() ?: ""}",
+                "visit constructor parameters: "
+            )
             val ignore =
                 member.annotations.find { it.annotationType.resolve().declaration.qualifiedName?.asString() == Ignore::class.qualifiedName } != null
             val columnInfo =
@@ -222,7 +237,7 @@ class KspOrmkvProcessor(
 
         // write file
         val file = FileSpec.builder(generatePackageName, fileName).addType(typeSpec.build()).build()
-        file.writeTo(codeGenerator = codeGenerator, dependencies = Dependencies(false))
+        file.writeTo(codeGenerator = codeGenerator, dependencies = Dependencies(false, source))
     }
 
 
@@ -260,55 +275,20 @@ class KspOrmkvProcessor(
     }
 
     inner class OrmkvVisitor : KSVisitorVoid() {
-        override fun visitFile(file: KSFile, data: Unit) {
-            if (checkVisited(file)) return
-            file.annotations.forEach { it.accept(this, data) }
-            emit(file.filePath, "visit file: ")
-            for (declaration in file.declarations) {
-                declaration.accept(this, data)
-            }
-        }
-
-        override fun visitAnnotation(annotation: KSAnnotation, data: Unit) {
-            if (checkVisited(annotation)) return
-            emit(
-                annotation.annotationType.resolve().declaration.qualifiedName?.asString() ?: "",
-                "visit annotation:  ",
-            )
-            annotation.annotationType.accept(this, data)
-            annotation.arguments.forEach { it.accept(this, data) }
-        }
-
         override fun visitClassDeclaration(classDeclaration: KSClassDeclaration, data: Unit) {
-            if (checkVisited(classDeclaration)) return
-            emit(classDeclaration.classKind.type, "class type: ")
-            classDeclaration.annotations.forEach { it.accept(this, Unit) }
+            emit(classDeclaration.classKind.type, "visitClassDeclaration class type: ")
             classDeclaration.annotations.forEach {
+                it.accept(this, Unit)
                 emit(
                     "${it.annotationType.resolve().declaration.qualifiedName?.asString()}",
                     "visitClassDeclaration:"
                 )
             }
-            val className = classDeclaration.simpleName.getShortName() ?: ""
-
-
-            classDeclaration.getConstructors().maxByOrNull {
-                it.parameters.size
-            }?.parameters?.forEach {
-                emit(
-                    "${it.type.resolve().declaration.qualifiedName?.asString() ?: ""}:${it.name?.asString() ?: ""}",
-                    "visit constructor parameters: "
-                )
-            }
-
+            val className = classDeclaration.simpleName.getShortName()
             val parameters = classDeclaration.getConstructors().maxByOrNull {
                 it.parameters.size
             }?.parameters ?: return
 
-
-            classDeclaration.getDeclaredProperties().forEach {
-                emit(it.qualifiedName?.asString() ?: "", "visit getDeclaredProperties : ")
-            }
             classDeclaration.annotations.filter {
                 it.annotationType.resolve().declaration.qualifiedName?.asString() == Entity::class.qualifiedName
             }.forEach { annotation ->
@@ -326,25 +306,18 @@ class KspOrmkvProcessor(
                     className = className,
                     packageName = classDeclaration.packageName.asString(),
                     parameters = parameters,
-                    entityArgs = argsMap
+                    entityArgs = argsMap,
+                    source = classDeclaration.containingFile ?: return@forEach
                 )
             }
-
-
         }
+    }
 
-
-        private val visited = HashSet<Any>()
-
-        private fun checkVisited(symbol: Any): Boolean {
-            return if (visited.contains(symbol)) {
-                true
-            } else {
-                visited.add(symbol)
-                false
-            }
+    override fun finish() {
+        super.finish()
+        if (LOG) {
+            file.close()
         }
-
     }
 }
 
@@ -361,6 +334,6 @@ class KspOrmkvProvider : SymbolProcessorProvider {
 }
 
 private const val END_FIX = "Registry"
-private const val LOG = false
+private const val LOG = true
 private const val HANDLER = "kvHandler"
 private const val TAG = "KspOrmkv"

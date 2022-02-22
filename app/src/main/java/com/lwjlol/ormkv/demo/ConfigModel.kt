@@ -9,8 +9,6 @@ import com.lwjlol.ormkv.annotation.Ignore
 
 @Entity(className = "ConfigMmkv", handlerCodeReference = "KvStore.mmkv")
 data class ConfigModel(
-  val value1: String,
-  val value2: String,
   @Ignore
   val value3: ByteArray,
   @ColumnInfo(defValue = "22")
