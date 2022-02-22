@@ -11,8 +11,6 @@ import com.lwjlol.ormkv.annotation.Ignore
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ksp.writeTo
 import java.io.OutputStream
-import javax.lang.model.element.Element
-import javax.lang.model.element.Modifier
 
 /**
  * @author luwenjie on 2022/2/21 20:21:50
@@ -30,6 +28,7 @@ class KspOrmkvProcessor(
     lateinit var file: OutputStream
 
     fun emit(s: String, indent: String) {
+        if (!LOG) return
         file.appendText("$indent$s\n")
     }
 
@@ -38,7 +37,9 @@ class KspOrmkvProcessor(
         if (invoked) {
             return emptyList()
         }
-        file = codeGenerator.createNewFile(Dependencies(false), "", TAG, "log")
+        if (LOG) {
+            file = codeGenerator.createNewFile(Dependencies(false), "", TAG, "log")
+        }
         emit("$TAG: init($options)", "")
 
 
@@ -61,7 +62,7 @@ class KspOrmkvProcessor(
     ) {
         val classNameArg = entityArgs["className"] ?: ""
         val handlerCodeReferenceArg = entityArgs["handlerCodeReference"] ?: ""
-        var name = className
+        var name = classNameArg
         val generatePackageName = if (classNameArg.contains('.')) {
             name = classNameArg.substringAfterLast('.')
             classNameArg.substringBeforeLast('.')
@@ -338,230 +339,6 @@ class KspOrmkvProcessor(
         }
 
     }
-
-    inner class TestVisitor : KSVisitor<String, Unit> {
-
-        override fun visitReferenceElement(element: KSReferenceElement, data: String) {
-        }
-
-        override fun visitModifierListOwner(modifierListOwner: KSModifierListOwner, data: String) {
-
-        }
-
-        override fun visitNode(node: KSNode, data: String) {
-
-        }
-
-        override fun visitPropertyAccessor(accessor: KSPropertyAccessor, data: String) {
-
-        }
-
-        override fun visitDynamicReference(reference: KSDynamicReference, data: String) {
-
-        }
-
-        val visited = HashSet<Any>()
-
-        private fun checkVisited(symbol: Any): Boolean {
-            return if (visited.contains(symbol)) {
-                true
-            } else {
-                visited.add(symbol)
-                false
-            }
-        }
-
-        private fun invokeCommonDeclarationApis(declaration: KSDeclaration, indent: String) {
-            emit(
-                "${declaration.modifiers.joinToString(" ")} ${declaration.simpleName.asString()}",
-                indent
-            )
-            declaration.annotations.forEach { it.accept(this, "$indent  ") }
-            if (declaration.parentDeclaration != null)
-                emit(
-                    "  enclosing: ${declaration.parentDeclaration!!.qualifiedName?.asString()}",
-                    indent
-                )
-            declaration.containingFile?.let {
-                emit(
-                    "${it.packageName.asString()}.${it.fileName}",
-                    indent
-                )
-            }
-            declaration.typeParameters.forEach { it.accept(this, "$indent  ") }
-        }
-
-        override fun visitFile(file: KSFile, data: String) {
-            if (checkVisited(file)) return
-            file.annotations.forEach { it.accept(this, "$data  ") }
-            emit(file.packageName.asString(), data)
-            for (declaration in file.declarations) {
-                declaration.accept(this, data)
-            }
-        }
-
-        override fun visitAnnotation(annotation: KSAnnotation, data: String) {
-            if (checkVisited(annotation)) return
-            emit("annotation", data)
-            annotation.annotationType.accept(this, "$data  ")
-            annotation.arguments.forEach { it.accept(this, "$data  ") }
-        }
-
-        override fun visitCallableReference(reference: KSCallableReference, data: String) {
-            if (checkVisited(reference)) return
-            emit("element: ", data)
-            reference.functionParameters.forEach { it.accept(this, "$data  ") }
-            reference.receiverType?.accept(this, "$data receiver")
-            reference.returnType.accept(this, "$data  ")
-        }
-
-        override fun visitPropertyGetter(getter: KSPropertyGetter, data: String) {
-            if (checkVisited(getter)) return
-            emit("propertyGetter: ", data)
-            getter.annotations.forEach { it.accept(this, "$data  ") }
-            emit(getter.modifiers.joinToString(" "), data)
-            getter.returnType?.accept(this, "$data  ")
-        }
-
-        override fun visitPropertySetter(setter: KSPropertySetter, data: String) {
-            if (checkVisited(setter)) return
-            emit("propertySetter: ", data)
-            setter.annotations.forEach { it.accept(this, "$data  ") }
-            emit(setter.modifiers.joinToString(" "), data)
-        }
-
-        override fun visitTypeArgument(typeArgument: KSTypeArgument, data: String) {
-            if (checkVisited(typeArgument)) return
-            typeArgument.annotations.forEach { it.accept(this, "$data  ") }
-            emit(
-                when (typeArgument.variance) {
-                    Variance.STAR -> "*"
-                    Variance.COVARIANT -> "out"
-                    Variance.CONTRAVARIANT -> "in"
-                    else -> ""
-                }, data
-            )
-            typeArgument.type?.accept(this, "$data  ")
-        }
-
-        override fun visitTypeParameter(typeParameter: KSTypeParameter, data: String) {
-            if (checkVisited(typeParameter)) return
-            typeParameter.annotations.forEach { it.accept(this, "$data  ") }
-            if (typeParameter.isReified) {
-                emit("reified ", data)
-            }
-            emit(
-                when (typeParameter.variance) {
-                    Variance.COVARIANT -> "out "
-                    Variance.CONTRAVARIANT -> "in "
-                    else -> ""
-                } + typeParameter.name.asString(), data
-            )
-            if (typeParameter.bounds.toList().isNotEmpty()) {
-                typeParameter.bounds.forEach { it.accept(this, "$data  ") }
-            }
-        }
-
-        override fun visitValueParameter(valueParameter: KSValueParameter, data: String) {
-            if (checkVisited(valueParameter)) return
-            valueParameter.annotations.forEach { it.accept(this, "$data  ") }
-            if (valueParameter.isVararg) {
-                emit("vararg", "$data  ")
-            }
-            if (valueParameter.isNoInline) {
-                emit("noinline", "$data  ")
-            }
-            if (valueParameter.isCrossInline) {
-                emit("crossinline ", "$data  ")
-            }
-            emit(valueParameter.name?.asString() ?: "_", "$data  ")
-            valueParameter.type.accept(this, "$data  ")
-        }
-
-        override fun visitFunctionDeclaration(function: KSFunctionDeclaration, data: String) {
-            if (checkVisited(function)) return
-            invokeCommonDeclarationApis(function, data)
-            for (declaration in function.declarations) {
-                declaration.accept(this, "$data  ")
-            }
-            function.parameters.forEach { it.accept(this, "$data  ") }
-            function.typeParameters.forEach { it.accept(this, "$data  ") }
-            function.extensionReceiver?.accept(this, "$data extension:")
-            emit("returnType:", data)
-            function.returnType?.accept(this, "$data  ")
-        }
-
-        override fun visitClassDeclaration(classDeclaration: KSClassDeclaration, data: String) {
-            if (checkVisited(classDeclaration)) return
-            invokeCommonDeclarationApis(classDeclaration, data)
-            emit(classDeclaration.classKind.type, data)
-            for (declaration in classDeclaration.declarations) {
-                declaration.accept(this, "$data ")
-            }
-            classDeclaration.superTypes.forEach { it.accept(this, "$data  ") }
-            classDeclaration.primaryConstructor?.accept(this, "$data  ")
-        }
-
-        override fun visitPropertyDeclaration(property: KSPropertyDeclaration, data: String) {
-            if (checkVisited(property)) return
-            invokeCommonDeclarationApis(property, data)
-            property.type.accept(this, "$data  ")
-            property.extensionReceiver?.accept(this, "$data extension:")
-            property.setter?.accept(this, "$data  ")
-            property.getter?.accept(this, "$data  ")
-        }
-
-        override fun visitTypeReference(typeReference: KSTypeReference, data: String) {
-            if (checkVisited(typeReference)) return
-            typeReference.annotations.forEach { it.accept(this, "$data  ") }
-            val type = typeReference.resolve()
-            type.let {
-                emit("resolved to: ${it.declaration.qualifiedName?.asString()}", data)
-            }
-            try {
-                typeReference.element?.accept(this, "$data  ")
-            } catch (e: IllegalStateException) {
-                emit("$TAG: exception: $e", data)
-            }
-        }
-
-        override fun visitAnnotated(annotated: KSAnnotated, data: String) {
-        }
-
-        override fun visitDeclaration(declaration: KSDeclaration, data: String) {
-        }
-
-        override fun visitDeclarationContainer(
-            declarationContainer: KSDeclarationContainer,
-            data: String
-        ) {
-        }
-
-        override fun visitParenthesizedReference(
-            reference: KSParenthesizedReference,
-            data: String
-        ) {
-        }
-
-        override fun visitClassifierReference(reference: KSClassifierReference, data: String) {
-            if (checkVisited(reference)) return
-            if (reference.typeArguments.isNotEmpty()) {
-                reference.typeArguments.forEach { it.accept(this, "$data  ") }
-            }
-        }
-
-        override fun visitTypeAlias(typeAlias: KSTypeAlias, data: String) {
-        }
-
-        override fun visitValueArgument(valueArgument: KSValueArgument, data: String) {
-            if (checkVisited(valueArgument)) return
-            val name = valueArgument.name?.asString() ?: "<no name>"
-            emit("$name: ${valueArgument.value}", data)
-            valueArgument.annotations.forEach { it.accept(this, "$data  ") }
-        }
-    }
-
-
 }
 
 

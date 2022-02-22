@@ -7,7 +7,7 @@ import com.lwjlol.ormkv.annotation.ColumnInfo
 import com.lwjlol.ormkv.annotation.Entity
 import com.lwjlol.ormkv.annotation.Ignore
 
-@Entity(className = "com.test.ConfigMmkv", handlerCodeReference = "com.lwjlol.ormkv.demo.KvStore.mmkv")
+@Entity(className = "ConfigMmkv", handlerCodeReference = "com.lwjlol.ormkv.demo.KvStore.mmkv")
 data class ConfigModel(
   val value1: String,
   val value2: String,
