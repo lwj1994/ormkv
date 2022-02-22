@@ -9,7 +9,6 @@ import com.lwjlol.ormkv.annotation.Ignore
  */
 @Entity(
     prefixKeyWithClassName = true,
-    className = "com.test.UserSp",
     handlerCodeReference = "com.lwjlol.ormkv.demo.KvStore.sp"
 )
 data class UserModel(
