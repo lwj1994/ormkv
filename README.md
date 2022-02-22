@@ -72,3 +72,84 @@ println(UserInfoSP.name)
 // 清除所有sp信息，恢复为默认值
 UserInfoSP.reset()
 ```
+
+## KSP
+
+1.2.0 已支持 ksp 使用方法： KSP Generated Sources in IDE Note, that as of the current KSP version generated
+java sources are detected by the IDE but NOT generated kotlin sources. This means that generated
+epoxy kotlin extensions will not automatically be resolved in the IDE. You must manually configure
+your source sets to include ksp generated folders.
+
+You can add this to your root build.gradle file to work around this
+
+```gradle
+subprojects { project ->
+    afterEvaluate {
+        if (project.hasProperty("android")) {
+            android {
+                if (it instanceof com.android.build.gradle.LibraryExtension) {
+                    libraryVariants.all { variant ->
+                        def outputFolder = new File("build/generated/ksp/${variant.name}/kotlin")
+                        variant.addJavaSourceFoldersToModel(outputFolder)
+                        android.sourceSets.getAt(variant.name).java {
+                            srcDir(outputFolder)
+                        }
+                    }
+                } else if (it instanceof com.android.build.gradle.AppExtension) {
+                    applicationVariants.all { variant ->
+                        def outputFolder = new File("build/generated/ksp/${variant.name}/kotlin")
+                        variant.addJavaSourceFoldersToModel(outputFolder)
+                        android.sourceSets.getAt(variant.name).java {
+                            srcDir(outputFolder)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+```
+
+Of if you use kotlin build files you can apply it like this to a project.
+
+```kotlin
+/**
+ * Return the Android variants for this module, or error if this is not a module with a known Android plugin.
+ */
+fun Project.requireAndroidVariants(): DomainObjectSet<out com.android.build.gradle.api.BaseVariant> {
+ return androidVariants() ?: error("no known android extension found for ${project.name}")
+}
+
+/**
+ * Return the Android variants for this module, or null if this is not a module with a known Android plugin.
+ */
+fun Project.androidVariants(): DomainObjectSet<out com.android.build.gradle.api.BaseVariant>? {
+ return when (val androidExtension = this.extensions.findByName("android")) {
+  is com.android.build.gradle.LibraryExtension -> {
+   androidExtension.libraryVariants
+  }
+  is com.android.build.gradle.AppExtension -> {
+   androidExtension.applicationVariants
+  }
+  else -> null
+ }
+}
+
+fun Project.registerKspKotlinOutputAsSourceSet() {
+ afterEvaluate {
+  val android by lazy {
+   extensions.findByType(com.android.build.gradle.BaseExtension::class.java)
+    ?: throw NullPointerException()
+  }
+
+  requireAndroidVariants().forEach { variant ->
+   val variantName = variant.name
+   val outputFolder = File("build/generated/ksp/$variantName/kotlin")
+   variant.addJavaSourceFoldersToModel(outputFolder)
+   android.sourceSets.getAt(variantName).java {
+    srcDir(outputFolder)
+   }
+  }
+ }
+}
+```

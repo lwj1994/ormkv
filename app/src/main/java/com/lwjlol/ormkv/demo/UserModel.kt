@@ -9,22 +9,26 @@ import com.lwjlol.ormkv.annotation.Ignore
  */
 @Entity(className = "com.test.UserSp", handlerCodeReference = "com.lwjlol.ormkv.demo.KvStore.sp")
 data class UserModel(
-  @Ignore
-  val skip: String,
-  @ColumnInfo(defValue = "qweqweqe")
-  val name: String,
-  @ColumnInfo(defValue = "12")
-  val age: Int,
-  @ColumnInfo(defValue = "12312312", enableReset = false)
-  val id: Long,
-  @ColumnInfo(defValue = "false")
-  val isMan: Boolean,
-  @ColumnInfo(defValue = "0F", enableReset = false)
-  val temperature: Float
+    @Ignore
+    val skip: String,
+    @ColumnInfo(defValue = "qweqweqe")
+    val name: String,
+    @Ignore
+    @ColumnInfo(defValue = "12")
+    val age: Int,
+    @ColumnInfo(defValue = "12312312", enableReset = false)
+    val id: Long,
+    @ColumnInfo(defValue = "false")
+    val isMan: Boolean,
+    @ColumnInfo(defValue = "0F", enableReset = false)
+    val temperature: Float
 
 ) {
 
-  companion object {
-    private const val TAG = "UserInfos"
-  }
+    companion object {
+        private const val TAG = "UserInfos"
+    }
 }
+
+@Entity
+class TestModel(a: String, b: String)

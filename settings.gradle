@@ -1,4 +1,0 @@
-rootProject.name = "ormkv"
-include ':app', ':compiler', ':core'
-include ':sharedPreferences'
-include ':mmkv'

@@ -15,8 +15,6 @@ data class ConfigModel(
   val value3: ByteArray,
   @ColumnInfo(defValue = "22")
   val value4: Long,
-  @Ignore
-  val a: A
 )
 
 class A(val a: String) : Parcelable {
