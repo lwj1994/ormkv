@@ -114,24 +114,24 @@ class KspOrmkvProcessor(
                     getName = "get(\"$propertyName\", \"\"\"$defValue\"\"\") as String"
                 }
                 "kotlin.Float" -> {
-                    getName = "get(\"$propertyName\", $defValue) as Float"
                     defValue = defValue.ifEmpty { "0F" }
+                    getName = "get(\"$propertyName\", $defValue) as Float"
                 }
                 "kotlin.Int" -> {
-                    getName = "get(\"$propertyName\", $defValue) as Int"
                     defValue = defValue.ifEmpty { "0" }
+                    getName = "get(\"$propertyName\", $defValue) as Int"
                 }
                 "kotlin.Long" -> {
-                    getName = "get(\"$propertyName\", $defValue) as Long"
                     defValue = defValue.ifEmpty { "0L" }
+                    getName = "get(\"$propertyName\", $defValue) as Long"
                 }
                 "kotlin.Boolean" -> {
-                    getName = "get(\"$propertyName\", $defValue) as Boolean"
                     defValue = defValue.ifEmpty { "false" }
+                    getName = "get(\"$propertyName\", $defValue) as Boolean"
                 }
                 "kotlin.ByteArray" -> {
-                    getName = "get(\"$propertyName\", ByteArray(0)) as ByteArray"
                     defValue = defValue.ifEmpty { "ByteArray(0)" }
+                    getName = "get(\"$propertyName\", ByteArray(0)) as ByteArray"
                 }
                 else -> {
                     defValue = "error"

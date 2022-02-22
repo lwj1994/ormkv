@@ -15,6 +15,11 @@ data class ConfigModel(
   val value3: ByteArray,
   @ColumnInfo(defValue = "22")
   val value4: Long,
+  @ColumnInfo(defValue = "")
+  val v4: Boolean,
+  val v5: Long,
+  val v6: Float,
+  val v7: ByteArray,
 )
 
 class A(val a: String) : Parcelable {
