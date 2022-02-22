@@ -2,6 +2,7 @@ apply plugin: 'com.android.application'
 
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
+apply plugin: "com.google.devtools.ksp"
 
 
 android {
@@ -42,9 +43,16 @@ dependencies {
 //    implementation "com.github.lwj1994.ormkv:sharedPreferences:0.8.0"
 //    implementation "com.github.lwj1994.ormkv:mmkv:0.8.0"
     kapt project(path: ':compiler')
+    ksp project(path: ':compiler')
 //    kapt "com.github.lwj1994.ormkv:compiler:0.8.0"
     implementation('com.tencent:mmkv-static:1.2.8')
 
 //    implementation 'com.lwjlol.ccsp:ccsp:0.0.1'
 //    kapt 'com.lwjlol.ccsp:compiler:0.0.1'
+
+}
+
+ksp {
+    arg("option1", "value1")
+    arg("option2", "value2")
 }

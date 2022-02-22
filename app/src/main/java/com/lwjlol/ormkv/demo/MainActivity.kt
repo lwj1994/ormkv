@@ -3,7 +3,7 @@ package com.lwjlol.ormkv.demo
 import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import com.test.UserSp
+//import com.test.UserSp
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -13,9 +13,9 @@ class MainActivity : AppCompatActivity() {
       updateText()
 
 
-      UserSp.name
+//      UserSp.name
 
-      UserSp.reset()
+//      UserSp.reset()
     }
 
     @SuppressLint("SetTextI18n")
