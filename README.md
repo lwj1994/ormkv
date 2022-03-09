@@ -24,10 +24,10 @@ object-oriented tool class that access key-value pairs based on the bean class.
 	   // option :if you use mmkv
 	   implementation "com.github.lwj1994.ormkv:mmkv:${latestVersion}"
 	   
-	   // if you user kapt
+	   // if you use kapt
 	   kapt "com.github.lwj1994.ormkv:compiler:${latestVersion}"
 	   
-	   // if you user ksp
+	   // if you use ksp
 	   ksp "com.github.lwj1994.ormkv:compiler:${latestVersion}"
 	}
 ```
