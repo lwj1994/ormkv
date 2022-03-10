@@ -137,6 +137,9 @@ class KspOrmkvProcessor(
                 }
                 "kotlin.Float" -> {
                     defValue = defValue.ifEmpty { "0F" }
+                    if (!defValue.endsWith('F')) {
+                        defValue = "${defValue}F"
+                    }
                     getName = "get(\"$keyName\", $defValue) as Float"
                 }
                 "kotlin.Int" -> {
@@ -145,6 +148,9 @@ class KspOrmkvProcessor(
                 }
                 "kotlin.Long" -> {
                     defValue = defValue.ifEmpty { "0L" }
+                    if (!defValue.endsWith('L')) {
+                        defValue = "${defValue}L"
+                    }
                     getName = "get(\"$keyName\", $defValue) as Long"
                 }
                 "kotlin.Boolean" -> {
@@ -334,6 +340,6 @@ class KspOrmkvProvider : SymbolProcessorProvider {
 }
 
 private const val END_FIX = "Registry"
-private const val LOG = true
+private const val LOG = false
 private const val HANDLER = "kvHandler"
 private const val TAG = "KspOrmkv"

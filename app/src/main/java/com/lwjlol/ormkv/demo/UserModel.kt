@@ -23,7 +23,7 @@ data class UserModel(
     val id: Long,
     @ColumnInfo(defValue = "false")
     val isMan: Boolean,
-    @ColumnInfo(defValue = "0F", enableReset = false)
+    @ColumnInfo(defValue = "1231", enableReset = false)
     val temperature: Float
 
 ) {
