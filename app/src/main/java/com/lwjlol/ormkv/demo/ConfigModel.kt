@@ -11,9 +11,9 @@ import com.lwjlol.ormkv.annotation.Ignore
 data class ConfigModel(
   @Ignore
   val value3: ByteArray,
-  @ColumnInfo(defValue = "22")
+  @ColumnInfo(defaultValue = "22")
   val value4: Long,
-  @ColumnInfo(defValue = "")
+  @ColumnInfo(defaultValue = "false")
   val v4: Boolean,
   val v5: Long,
   val v6: Float,

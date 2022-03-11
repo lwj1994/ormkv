@@ -8,22 +8,25 @@ import com.lwjlol.ormkv.annotation.Ignore
  * @author luwenjie on 2019-08-11 20:16:58
  */
 @Entity(
-    prefixKeyWithClassName = true,
-    handlerCodeReference = "com.lwjlol.ormkv.demo.KvStore.sp"
+    className = "User",
+    handlerCodeReference = "com.lwjlol.ormkv.demo.KvStore.sp",
+    prefixKeyWithClassName = true
 )
 data class UserModel(
+    @ColumnInfo(name = "SECNAME_XXD", defaultValue = Constants.PWD)
+    val secname: String,
     @Ignore
 //    val skip: String,
-    @ColumnInfo(defValue = "qweqweqe")
+    @ColumnInfo(defaultValue = "qweqweqe")
     val name: String,
     @Ignore
-    @ColumnInfo(defValue = "12")
+    @ColumnInfo(defaultValue = "12")
     val age: Int,
-    @ColumnInfo(defValue = "12312312", enableReset = false)
+    @ColumnInfo(defaultValue = "12312312", enableReset = false)
     val id: Long,
-    @ColumnInfo(defValue = "false")
+    @ColumnInfo(defaultValue = "false")
     val isMan: Boolean,
-    @ColumnInfo(defValue = "1231", enableReset = false)
+    @ColumnInfo(defaultValue = "1231", enableReset = false)
     val temperature: Float
 
 ) {
