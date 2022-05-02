@@ -32,7 +32,7 @@ class KspOrmkvProcessor(
 ) : SymbolProcessor {
     var invoked = false
     lateinit var file: OutputStream
-    fun emit(s: String, indent: String) {
+    fun emit(s: String, indent: String = "") {
         if (!LOG) return
         file.appendText("$indent$s\n")
     }
@@ -73,7 +73,7 @@ class KspOrmkvProcessor(
     ) {
         val classNameArg = entityArgs["className"] as? String ?: ""
         val prefixKeyArg = entityArgs["prefixKeyWithClassName"] as? Boolean ?: false
-        val handlerCodeReferenceArg = entityArgs["handlerCodeReference"] as? String ?: ""
+        val handlerCodeReferenceArg = entityArgs["handler"] as? String ?: ""
         var name = classNameArg
         val generatePackageName = if (classNameArg.contains('.')) {
             name = classNameArg.substringAfterLast('.')
@@ -98,8 +98,10 @@ class KspOrmkvProcessor(
                 KModifier.PRIVATE
             ).initializer(handlerCodeReferenceArg).build()
         )
+
         // clear code
         val clearCode = StringBuilder()
+        val initCode = StringBuilder()
         val toStringCode = StringBuilder()
         val toModelCode = StringBuilder()
         val updateCode = StringBuilder()
@@ -132,6 +134,7 @@ class KspOrmkvProcessor(
             }
             val memberTypeName = member.type.resolve().declaration.qualifiedName?.asString() ?: ""
             val propertyName = member.name?.asString() ?: ""
+            val valueName = "_$propertyName"
             val keyUnitName = columnName.ifEmpty { member.name?.asString() ?: "" }
             var getName = ""
 
@@ -185,13 +188,13 @@ class KspOrmkvProcessor(
                 return@forEachIndexed
             }
             val typeName = ClassName.bestGuess(memberTypeName)
-//            typeSpec.addProperty(
-//                PropertySpec.builder(valueName, typeName.copy(nullable = true))
-//                    .initializer("null")
-//                    .addModifiers(KModifier.PRIVATE)
-//                    .mutable(true)
-//                    .build()
-//            )
+            typeSpec.addProperty(
+                PropertySpec.builder(valueName, typeName.copy(nullable = true))
+                    .initializer("null")
+                    .addModifiers(KModifier.PRIVATE)
+                    .mutable(true)
+                    .build()
+            )
 
             val setName = """put("$keyName", value)"""
             typeSpec.addProperty(
@@ -201,7 +204,10 @@ class KspOrmkvProcessor(
                         FunSpec.getterBuilder()
                             .addCode(
                                 """
-                                    |return ${HANDLER}.$getName
+                                    |if ($valueName == null) {
+                                    |   $valueName = ${HANDLER}.$getName
+                                    |}
+                                    |return $valueName!!
                                     |""".trimMargin()
                             )
                             .build()
@@ -209,6 +215,7 @@ class KspOrmkvProcessor(
                     .setter(
                         FunSpec.setterBuilder().addParameter("value", typeName).addCode(
                             """
+                            |$valueName = value
                             |${HANDLER}.$setName
                             |""".trimMargin()
                         ).build()
@@ -218,6 +225,7 @@ class KspOrmkvProcessor(
             toStringCode.append("|$propertyName = $$propertyName\n")
             toModelCode.append("|$propertyName = $propertyName, \n")
             updateCode.append("|$propertyName = model.$propertyName\n")
+            initCode.append("|$valueName = ${HANDLER}.$getName\n")
             if (enableReset) {
                 if (memberTypeName.contains("String")) {
                     clearCode.append("$propertyName = \"\"\"$defaultValue\"\"\" \n")
@@ -226,6 +234,15 @@ class KspOrmkvProcessor(
                 }
             }
         }
+
+        typeSpec.addFunction(
+            FunSpec.builder("refresh")
+                .addCode(
+                    """
+                       $initCode 
+                        """.trimMargin()
+                ).build()
+        )
 
         // add reset()
         typeSpec.addFunction(
@@ -341,8 +358,10 @@ class KspOrmkvProvider : SymbolProcessorProvider {
 }
 
 private const val END_FIX = "Registry"
-private const val LOG = false
+private const val LOG = true
 private const val HANDLER = "kvHandler"
+private const val COROUTINE_HANDLER = "coroutineKvHandler"
+private const val COROUTINE_Scpoe = "coroutineKvScope"
 private const val TAG = "KspOrmkv"
 private const val DEFAULT_VALUE = "defaultValue"
 private const val NAME = "name"

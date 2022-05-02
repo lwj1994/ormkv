@@ -9,8 +9,7 @@ import com.lwjlol.ormkv.annotation.Ignore
  */
 @Entity(
     className = "User",
-    handlerCodeReference = "com.lwjlol.ormkv.demo.KvStore.sp",
-    prefixKeyWithClassName = true
+    handler = "com.lwjlol.ormkv.demo.KvStore.sp",
 )
 data class UserModel(
     @ColumnInfo(name = "SECNAME_XXD", defaultValue = Constants.PWD)

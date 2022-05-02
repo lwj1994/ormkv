@@ -20,7 +20,7 @@ import javax.tools.Diagnostic
 @Suppress("DEPRECATION")
 @SupportedSourceVersion(value = SourceVersion.RELEASE_8)
 @SupportedAnnotationTypes(value = ["com.lwjlol.ormkv.annotation.Entity", "com.lwjlol.ormkv.annotation.ColumnInfo", "com.lwjlol.ormkv.annotation.Ignore"])
-class OrmkvProcessor : AbstractProcessor() {
+class KaptOrmkvProcessor : AbstractProcessor() {
     private var messager: Messager? = null
     override fun init(processingEnv: ProcessingEnvironment?) {
         super.init(processingEnv)
@@ -79,10 +79,11 @@ class OrmkvProcessor : AbstractProcessor() {
                 HANDLER,
                 OrmKvHandler::class,
                 KModifier.PRIVATE
-            ).initializer(entity.handlerCodeReference).build()
+            ).initializer(entity.handler).build()
         )
         // clear code
         val clearCode = StringBuilder()
+        val initCode = StringBuilder()
         val toStringCode = StringBuilder()
         val toModelCode = StringBuilder()
         val updateCode = StringBuilder()
@@ -96,6 +97,7 @@ class OrmkvProcessor : AbstractProcessor() {
                 val columnName = spColumnInfo?.name ?: ""
                 val clear = spColumnInfo?.enableReset ?: true
                 val memberTypeName = member.asType().asTypeName()
+                val valueName = "_${member.simpleName}"
                 val propertyName = member.simpleName.toString()
                 val typeName =
                     when {
@@ -165,7 +167,13 @@ class OrmkvProcessor : AbstractProcessor() {
                 }
 
                 val setName = """put("$keyName", value)"""
-
+                typeSpec.addProperty(
+                    PropertySpec.builder(valueName, typeName.copy(true))
+                        .initializer("null")
+                        .addModifiers(KModifier.PRIVATE)
+                        .mutable(true)
+                        .build()
+                )
                 typeSpec.addProperty(
                     PropertySpec.builder(propertyName, typeName)
                         .mutable(true)
@@ -173,7 +181,10 @@ class OrmkvProcessor : AbstractProcessor() {
                             FunSpec.getterBuilder()
                                 .addCode(
                                     """
-                                    |return $HANDLER.$getName
+                                    |if ($valueName == null) {
+                                    |   $valueName = $HANDLER.$getName
+                                    |}
+                                    |return $valueName!!
                                     |""".trimMargin()
                                 )
                                 .build()
@@ -181,6 +192,7 @@ class OrmkvProcessor : AbstractProcessor() {
                         .setter(
                             FunSpec.setterBuilder().addParameter("value", typeName).addCode(
                                 """
+                            |$valueName = value
                             |$HANDLER.$setName
                             |""".trimMargin()
                             ).build()
@@ -190,6 +202,7 @@ class OrmkvProcessor : AbstractProcessor() {
                 toStringCode.append("|$propertyName = $$propertyName\n")
                 toModelCode.append("|$propertyName = $propertyName, \n")
                 updateCode.append("|$propertyName = model.$propertyName\n")
+                initCode.append("|$valueName = ${HANDLER}.$getName\n")
                 if (clear) {
                     if (typeName.toString().contains("String")) {
                         clearCode.append("$propertyName = \"\"\"$defValue\"\"\" \n")
@@ -199,6 +212,15 @@ class OrmkvProcessor : AbstractProcessor() {
                 }
             }
         }
+
+        typeSpec.addFunction(
+            FunSpec.builder("refresh")
+                .addCode(
+                    """
+                       $initCode 
+                        """.trimMargin()
+                ).build()
+        )
 
         // add reset()
         typeSpec.addFunction(

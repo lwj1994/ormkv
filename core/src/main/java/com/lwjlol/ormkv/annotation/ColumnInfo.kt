@@ -1,9 +1,9 @@
 package com.lwjlol.ormkv.annotation
 
 /**
- * @param defaultValue 默认值
- * @param enableReset 允许恢复默认值
- * @param handlerCodeReference
+ * @param defaultValue
+ * @param name
+ * @param enableReset reset to [defaultValue]
  */
 @Target(AnnotationTarget.FIELD)
 @Retention(AnnotationRetention.SOURCE)

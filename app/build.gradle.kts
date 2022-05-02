@@ -8,7 +8,7 @@ plugins {
     id("com.google.devtools.ksp")
 }
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-    kotlinOptions.jvmTarget = "1.8"
+    kotlinOptions.jvmTarget = "11"
 }
 
 registerKspKotlinOutputAsSourceSet()
@@ -21,11 +21,11 @@ android {
         targetCompatibility(1.8)
     }
 
-    compileSdk = 29
+    compileSdk = 32
     defaultConfig {
         applicationId("com.lwjlol.chunchunsp.demo")
         minSdkVersion(19)
-        targetSdkVersion(29)
+        targetSdkVersion(32)
         versionCode(1)
         versionName("1.0")
         testInstrumentationRunner("androidx.test.runner.AndroidJUnitRunner")
@@ -61,13 +61,14 @@ android {
 
 
 dependencies {
-    implementation("androidx.appcompat:appcompat:1.0.2")
-    implementation("androidx.core:core-ktx:1.0.2")
-    implementation("androidx.constraintlayout:constraintlayout:1.1.3")
+    implementation("androidx.appcompat:appcompat:1.4.1")
+    implementation("androidx.core:core-ktx:1.7.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.1")
+    implementation("androidx.constraintlayout:constraintlayout:2.1.3")
     implementation("com.tencent:mmkv-static:1.2.8")
-    testImplementation("junit:junit:4.12")
-    androidTestImplementation("androidx.test:runner:1.2.0")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.2.0")
+    testImplementation("junit:junit:4.13.2")
+    androidTestImplementation("androidx.test:runner:1.4.0")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.4.0")
     implementation(project(":core"))
     implementation(project(":sharedPreferences"))
     implementation(project(":mmkv"))
