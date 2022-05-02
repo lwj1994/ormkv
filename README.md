@@ -74,8 +74,7 @@ use `@Entity` annotation this class.
 ```kotlin
 @Entity(
     name = "UserRegistry", // default name is className with suffix 'Registry', such as UserInfoRegistry
-    handlerCodeReference = "com.lwjlol.ormkv.demo.KvStore.sharedPreferencesHandler", // the store code with qualifiedName
-    prefixKeyWithClassName = "true" // if true, will add className as key's prefix, default false
+    handler = "com.lwjlol.ormkv.demo.KvStore.sharedPreferencesHandler", // the store code with qualifiedName
 )
 data class UserInfo(
     // name: the real key name
@@ -109,55 +108,56 @@ public object UserRegistry {
 
     public var name: String
         get() {
-            return kvHandler.get("com.lwjlol.ormkv.demo.UserInfo_name", "david") as String
+            return kvHandler.get("name", "david") as String
         }
         set(`value`) {
-            kvHandler.put("com.lwjlol.ormkv.demo.UserInfo_name", value)
+            kvHandler.put("name", value)
         }
 
     public var id: Long
         get() {
-            return kvHandler.get("com.lwjlol.ormkv.demo.UserInfo_id", 12312312) as Long
+            return kvHandler.get("id", 12312312) as Long
         }
         set(`value`) {
-            kvHandler.put("com.lwjlol.ormkv.demo.UserInfo_id", value)
+            kvHandler.put("id", value)
         }
 
     public var isMan: Boolean
         get() {
-            return kvHandler.get("com.lwjlol.ormkv.demo.UserInfo_isMan", false) as Boolean
+            return kvHandler.get("isMan", false) as Boolean
         }
         set(`value`) {
-            kvHandler.put("com.lwjlol.ormkv.demo.UserInfo_isMan", value)
+            kvHandler.put("isMan", value)
         }
 
+    public fun refresh() {
+        _name = kvHandler.get("name", "david") as String
+        _id = kvHandler.get("id", "12312312") as Long
+        _isMan = kvHandler.get(isMan, false) as Boolean
+    }
 
     /**
      * reset all value to default value
      */
     public fun reset(): Unit {
         name = "david"
-        age = 12
         id = 1L
         isMan = true
     }
 
     public override fun toString(): String = """|name = $name
-  |age = $age
   |id = $id
   |isMan = $isMan
   """.trimMargin()
 
     public fun update(model: UserInfo): Unit {
         name = model.name
-        age = model.age
         id = model.id
         isMan = model.isMan
     }
 
     public fun toModel(): UserInfo = com.lwjlol.ormkv.demo.UserInfo(
         name = name,
-        age = age,
         id = id,
         isMan = isMan
     )
@@ -173,6 +173,10 @@ UserRegistry.name = "Mike"
 
 Log.d(tag, UserRegistry.toString())
 Log.d(tag, UserRegistry.name)
+
+
+// refresh all values
+UserRegistry.refresh()
 ```
 
 ## KSP
